@@ -8,19 +8,19 @@ Replace Solid.js with Elm to eliminate runtime exceptions and timing issues. Add
 
 ## Progress Tracking
 
-| # | Phase | Status | Plan Document |
-|---|-------|--------|---------------|
-| 1 | Bootstrap | [ ] | `01-bootstrap-plan.md` |
-| 2 | Cloudflare Proxy | [ ] | `02-cloudflare-proxy-plan.md` |
-| 3 | Infrastructure | [ ] | `03-infrastructure-plan.md` |
-| 4 | Re-design | [ ] | `04-redesign-plan.md` |
-| 5 | i18n | [ ] | `05-i18n-plan.md` |
-| 6 | Main Shell | [ ] | `06-main-shell-plan.md` |
-| 7 | Message List + LLM | [ ] | `07-message-list-plan.md` |
-| 8 | Chat Features | [ ] | `08-chat-features-plan.md` |
-| 9 | Session Features | [ ] | `09-session-features-plan.md` |
-| 10 | Tutorial | [ ] | `10-tutorial-plan.md` |
-| 11 | E2E Tests | [ ] | `11-e2e-tests-plan.md` |
+| #  | Phase              | Status | Plan Document                 |
+|----|--------------------|--------|-------------------------------|
+| 1  | Bootstrap          | [x]    | `01-bootstrap-plan.md`        |
+| 2  | Cloudflare Proxy   | [ ]    | `02-cloudflare-proxy-plan.md` |
+| 3  | Infrastructure     | [ ]    | `03-infrastructure-plan.md`   |
+| 4  | Re-design          | [ ]    | `04-redesign-plan.md`         |
+| 5  | i18n               | [ ]    | `05-i18n-plan.md`             |
+| 6  | Main Shell         | [ ]    | `06-main-shell-plan.md`       |
+| 7  | Message List + LLM | [ ]    | `07-message-list-plan.md`     |
+| 8  | Chat Features      | [ ]    | `08-chat-features-plan.md`    |
+| 9  | Session Features   | [ ]    | `09-session-features-plan.md` |
+| 10 | Tutorial           | [ ]    | `10-tutorial-plan.md`         |
+| 11 | E2E Tests          | [ ]    | `11-e2e-tests-plan.md`        |
 
 Mark `[x]` when phase complete. Each plan includes completion step that updates this table.
 
@@ -30,27 +30,27 @@ Mark `[x]` when phase complete. Each plan includes completion step that updates 
 ┌─────────────────────────────────────────────────────────┐
 │                      Tauri App                          │
 ├─────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────┐   │
-│  │                   Elm (TEA)                      │   │
-│  │  Model → Update → View                          │   │
-│  │  - All UI logic                                 │   │
-│  │  - State management                             │   │
-│  │  - Type-safe, no runtime exceptions             │   │
-│  └──────────────────┬──────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │                   Elm (TEA)                     │    │
+│  │  Model → Update → View                          │    │
+│  │  - All UI logic                                 │    │
+│  │  - State management                             │    │
+│  │  - Type-safe, no runtime exceptions             │    │
+│  └──────────────────┬──────────────────────────────┘    │
 │                     │ Ports                             │
-│  ┌──────────────────▼──────────────────────────────┐   │
-│  │              JS Bridge Layer                     │   │
-│  │  - Web APIs (localStorage, fetch, clipboard)    │   │
-│  │  - Tauri invoke() for native features           │   │
-│  │  - Custom elements when needed                  │   │
-│  └──────────────────┬──────────────────────────────┘   │
+│  ┌──────────────────▼──────────────────────────────┐    │
+│  │              JS Bridge Layer                    │    │
+│  │  - Web APIs (localStorage, fetch, clipboard)    │    │
+│  │  - Tauri invoke() for native features           │    │
+│  │  - Custom elements when needed                  │    │
+│  └──────────────────┬──────────────────────────────┘    │
 │                     │ invoke()                          │
-│  ┌──────────────────▼──────────────────────────────┐   │
-│  │              Rust (Tauri)                        │   │
-│  │  - File dialogs (import/export)                 │   │
-│  │  - Performance-heavy operations                 │   │
-│  │  - Auto-updater                                 │   │
-│  └─────────────────────────────────────────────────┘   │
+│  ┌──────────────────▼──────────────────────────────┐    │
+│  │              Rust (Tauri)                       │    │
+│  │  - File dialogs (import/export)                 │    │
+│  │  - Performance-heavy operations                 │    │
+│  │  - Auto-updater                                 │    │
+│  └─────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────┘
                           │
                           ▼ fetch (with API key)
@@ -66,60 +66,58 @@ Mark `[x]` when phase complete. Each plan includes completion step that updates 
 
 ## Stack
 
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| UI | Elm | Type-safe UI, TEA architecture |
-| Styling | Tailwind + shadcn tokens | Pure CSS, clean aesthetic |
-| Bridge | TypeScript | Ports ↔ Tauri, Web APIs |
-| Build | Vite | Dev server, HMR, bundling |
-| Backend | Rust (Tauri) | Native features, performance |
-| Proxy | Cloudflare Worker | Authenticated Gemini gateway |
-| DevEnv | Nix | Reproducible builds, all deps |
-| CI/CD | GitHub Actions | Build artifacts, releases |
+| Layer   | Technology                 | Purpose                        |
+|---------|----------------------------|--------------------------------|
+| UI      | Elm 0.19.1                 | Type-safe UI, TEA architecture |
+| Styling | Tailwind + shadcn tokens   | Pure CSS, clean aesthetic      |
+| Bridge  | TypeScript 5.9.x           | Ports ↔ Tauri, Web APIs        |
+| Build   | Vite 7.x + elm-watch 1.2.x | Dev server, HMR, bundling      |
+| Backend | Rust (Tauri 2.x)           | Native features, performance   |
+| Proxy   | Cloudflare Worker          | Authenticated Gemini gateway   |
+| DevEnv  | Nix flakes + devshell      | Reproducible builds, all deps  |
+| Process | mprocs                     | Parallel dev processes         |
+| CI/CD   | GitHub Actions             | Build artifacts, releases      |
 
 ## Tooling
 
-### Rust
+### Rust (Bootstrap)
 
-| Tool | Purpose |
-|------|---------|
-| rustfmt | Formatting |
-| clippy | Linting |
-| cargo test | Unit tests |
+| Tool        | Purpose                |
+|-------------|------------------------|
+| rustfmt     | Formatting             |
+| clippy      | Linting                |
+| cargo test  | Unit tests             |
 | cargo-watch | Auto-rebuild on change |
-| cargo-tarpaulin | Code coverage |
-| cargo-audit | Security vulnerability scan |
 
-### Elm
+### Elm (Bootstrap)
 
-| Tool | Purpose |
-|------|---------|
+| Tool       | Purpose    |
+|------------|------------|
 | elm-format | Formatting |
-| elm-review | Linting |
-| elm-test | Unit tests |
-| elm-program-test | TEA integration tests |
-| elm-codegen | i18n code generation |
+| elm-review | Linting    |
+| elm-test   | Unit tests |
+| elm-watch  | Hot reload |
 
-### TypeScript
+### TypeScript (Bootstrap)
 
-| Tool | Purpose |
-|------|---------|
-| eslint | Linting |
-| prettier | Formatting |
-| Vite | Build, dev server |
+| Tool   | Purpose           |
+|--------|-------------------|
+| vitest | Testing           |
+| Vite   | Build, dev server |
 
-### E2E
+### Process Management
 
-| Tool | Purpose |
-|------|---------|
-| Playwright | Browser automation, E2E tests |
+| Tool   | Purpose                     |
+|--------|-----------------------------|
+| mprocs | Parallel dev process runner |
 
 ### Nix
 
-| Tool | Purpose |
-|------|---------|
-| nixfmt | Nix file formatting |
-| nix flake check | Linting |
+| Tool        | Purpose             |
+|-------------|---------------------|
+| nixpkgs-fmt | Nix file formatting |
+
+**Note:** Additional tools (eslint, prettier, elm-program-test, elm-codegen, cargo-tarpaulin, cargo-audit, Playwright) will be added in Infrastructure and later phases.
 
 ## Elm Architecture
 
@@ -275,12 +273,12 @@ Adding new provider: implement same `Message` interface, add config type.
 
 ## Error Handling
 
-| Error Type | Display | Action |
-|------------|---------|--------|
-| API/Message failure | Inline in message | Retry button |
-| Session import failure | Alert | Dismiss |
-| File operation failure | Alert | Dismiss |
-| Network error | Alert | Dismiss |
+| Error Type             | Display           | Action       |
+|------------------------|-------------------|--------------|
+| API/Message failure    | Inline in message | Retry button |
+| Session import failure | Alert             | Dismiss      |
+| File operation failure | Alert             | Dismiss      |
+| Network error          | Alert             | Dismiss      |
 
 Offline mode: Not supported. App requires internet connection.
 
@@ -308,12 +306,12 @@ Full accessibility support:
 
 ## Testing Strategy
 
-| Level | Tool | What to Test |
-|-------|------|--------------|
-| Unit | elm-test | Pure functions, decoders, i18n, business logic |
-| Integration | elm-program-test | Full TEA flows, user scenarios |
-| E2E | Playwright | Critical paths, real API, Tauri features |
-| Rust | cargo test | Tauri commands, file operations |
+| Level       | Tool             | What to Test                                   |
+|-------------|------------------|------------------------------------------------|
+| Unit        | elm-test         | Pure functions, decoders, i18n, business logic |
+| Integration | elm-program-test | Full TEA flows, user scenarios                 |
+| E2E         | Playwright       | Critical paths, real API, Tauri features       |
+| Rust        | cargo test       | Tauri commands, file operations                |
 
 Coverage priority: Elm unit tests > elm-program-test > Playwright > Rust tests.
 
@@ -323,11 +321,11 @@ Fast feedback loop: most bugs caught at Elm compile time or unit test level.
 
 ### Platforms
 
-| Platform | Format |
-|----------|--------|
-| macOS (Apple Silicon) | .dmg |
-| Windows | .msi |
-| Linux | AppImage, .deb |
+| Platform              | Format         |
+|-----------------------|----------------|
+| macOS (Apple Silicon) | .dmg           |
+| Windows               | .msi           |
+| Linux                 | AppImage, .deb |
 
 ### Pipeline
 
@@ -350,19 +348,19 @@ Each phase produces a deployable application. Each plan marks completion in Prog
 5. **Update CLAUDE.md** — Add relevant guidelines for the feature
 6. **Mark complete** — Update progress tracking table
 
-| # | Phase | Description | Output |
-|---|-------|-------------|--------|
-| 1 | Bootstrap | File structure, Tauri+Elm shell, README, LLM guidelines | Empty working app |
-| 2 | Cloudflare Proxy | Deploy authenticated proxy via Wrangler | Secure API gateway |
-| 3 | Infrastructure | Linting, formatting, CI/CD, Nix packaging | Complete toolchain |
-| 4 | Re-design | Tailwind + shadcn design tokens | Styled shell |
-| 5 | i18n | YAML → codegen pipeline, En/Ru | Translation system |
-| 6 | Main Shell | Header, theme toggle, language toggle, input area | Basic UI |
-| 7 | Message List + LLM | Chat display, Gemini integration, streaming | Core feature |
-| 8 | Chat Features | Attachments, model selector, search grounding | Full input |
-| 9 | Session Features | Export, import, clear | Data management |
-| 10 | Tutorial | Interactive walkthrough | Onboarding |
-| 11 | E2E Tests | Playwright test suite | Quality assurance |
+| #  | Phase              | Description                                                                              | Output             |
+|----|--------------------|------------------------------------------------------------------------------------------|--------------------|
+| 1  | Bootstrap          | Three-layer architecture (view/bridge/platform), Nix builds, mprocs, elm-watch packaging | Working shell app  |
+| 2  | Cloudflare Proxy   | Deploy authenticated proxy via Wrangler                                                  | Secure API gateway |
+| 3  | Infrastructure     | Linting, formatting, CI/CD, Nix packaging                                                | Complete toolchain |
+| 4  | Re-design          | Tailwind + shadcn design tokens                                                          | Styled shell       |
+| 5  | i18n               | YAML → codegen pipeline, En/Ru                                                           | Translation system |
+| 6  | Main Shell         | Header, theme toggle, language toggle, input area                                        | Basic UI           |
+| 7  | Message List + LLM | Chat display, Gemini integration, streaming                                              | Core feature       |
+| 8  | Chat Features      | Attachments, model selector, search grounding                                            | Full input         |
+| 9  | Session Features   | Export, import, clear                                                                    | Data management    |
+| 10 | Tutorial           | Interactive walkthrough                                                                  | Onboarding         |
+| 11 | E2E Tests          | Playwright test suite                                                                    | Quality assurance  |
 
 ### Phase Dependencies
 

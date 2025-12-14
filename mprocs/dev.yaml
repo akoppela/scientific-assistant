@@ -1,0 +1,10 @@
+procs:
+  elm-watch:
+    cmd: ["elm-watch", "hot", "dev"]
+    cwd: "view"
+  vite:
+    cmd: ["npx", "vite"]
+    cwd: "bridge"
+  tauri:
+    cmd: ["cargo", "tauri", "dev"]
+    cwd: "platform"

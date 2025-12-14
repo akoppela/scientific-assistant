@@ -2,9 +2,9 @@
 
 **Goal:** Create working Tauri + Elm application shell with Nix-managed dependencies, proper project structure, and development tooling.
 
-**Architecture:** Tauri wraps Elm frontend. Elm compiles to JavaScript, bundled by Vite, served in Tauri webview. All dependencies managed by Nix.
+**Architecture:** Three-layer design - view (Elm UI), bridge (TypeScript integration), platform (Tauri native). elm-watch outputs to `bridge/build/elm.js`, Vite bundles to `bridge/dist/`, Tauri serves in webview. All dependencies managed by Nix.
 
-**Tech Stack:** Tauri 2.x, Elm 0.19.1, Vite 6.x, TypeScript 5.x, Nix flakes with devshell
+**Tech Stack:** Tauri 2.x, Elm 0.19.1, elm-watch 1.2.x (dev), Vite 7.x, TypeScript 5.9.x, vitest 4.x, Nix flakes with devshell, mkElmDerivation
 
 **Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
@@ -12,12 +12,16 @@
 
 ## Key Design Decisions
 
-1. **Directory structure**: `frontend/` and `backend/` separation (not `src-tauri/`)
-2. **Dependency management**: All deps via Nix (`buildNpmPackage` + `buildRustPackage`)
-3. **Command interface**: `devshell` commands from project root
-4. **Build/test/check**: Integrated into Nix derivation phases
-5. **Format**: Separate command (formatting changes code)
-6. **E2E tests**: Deferred to later phase
+1. **Three-layer architecture**: `view/` (Elm UI), `bridge/` (TS integration), `platform/` (Tauri native)
+2. **Elm compilation**: elm-watch outputs to `bridge/build/elm.js` for dev, Nix copies to same location
+3. **Script tag loading**: Elm loaded via `<script src="/build/elm.js">`, accessed via `window.Elm`
+4. **Platform-specific configs**: `tauri.{linux,windows,macos}.conf.json` auto-merged by Tauri
+5. **Dependency management**: mkElmDerivation, buildNpmPackage, buildRustPackage with 10 package groups
+6. **Command interface**: `devshell` commands from project root
+7. **PKG_CONFIG_PATH**: Configured via devshell env for GTK development
+8. **Build/test/check**: Integrated into Nix derivation phases (elm-test, vitest, cargo test + clippy)
+9. **Format**: Separate command (elm-format, rustfmt, nixpkgs-fmt)
+10. **E2E tests**: Deferred to later phase
 
 ---
 
@@ -25,30 +29,48 @@
 
 ```
 scientific-assistant/
-├── frontend/
+├── view/                   # Elm UI layer
 │   ├── src/
 │   │   └── Main.elm
-│   ├── ts/
-│   │   └── main.ts
 │   ├── tests/
 │   │   └── MainTest.elm
+│   ├── dist/               # gitignored, elm output
+│   │   └── elm.js
 │   ├── elm.json
+│   └── elm-watch.json
+├── bridge/                 # TypeScript integration layer
+│   ├── src/
+│   │   ├── main.ts
+│   │   └── __tests__/
+│   │       └── main.test.ts
+│   ├── build/              # gitignored, elm.js from view
+│   │   └── elm.js
+│   ├── dist/               # gitignored, vite output
 │   ├── package.json
 │   ├── package-lock.json
 │   ├── tsconfig.json
 │   ├── vite.config.ts
+│   ├── vitest.config.ts
 │   └── index.html
-├── backend/
+├── platform/               # Tauri native layer
 │   ├── src/
 │   │   ├── main.rs
 │   │   └── lib.rs
 │   ├── capabilities/
 │   │   └── default.json
-│   ├── icons/           # placeholder
+│   ├── icons/
+│   │   └── *.png, *.ico, *.icns
 │   ├── Cargo.toml
 │   ├── Cargo.lock
 │   ├── tauri.conf.json
+│   ├── tauri.linux.conf.json
+│   ├── tauri.windows.conf.json
+│   ├── tauri.macos.conf.json
 │   └── build.rs
+├── elm-watch/              # elm-watch packaged for Nix
+│   ├── package.json        # elm-watch only
+│   ├── package-lock.json
+│   └── flake.nix           # buildNpmPackage + makeWrapper
 ├── .claude/docs/
 ├── flake.nix
 ├── flake.lock
@@ -62,28 +84,70 @@ scientific-assistant/
 
 ## Nix Architecture
 
-### **Three derivations**:
+### **Three derivations (architectural layers)**:
 
-**1. `packages.frontend`** (`buildNpmPackage`)
-- Builds: `elm make` → `vite build` → `dist/`
-- Check phase: `elm-test`
-- Output: `result/dist/` with bundled frontend
+**1. `packages.view`** (`mkElmDerivation`)
+- **Layer**: Presentation - Pure Elm UI
+- Builds: `elm make --optimize` → `dist/elm.js`
+- Check: `elm-test`, `elm-format --validate`
+- Output: `result/dist/elm.js` (~107KB optimized)
+- Source: `./view`
 
-**2. `packages.backend`** (`buildRustPackage`)
-- Builds: `cargo build --release`
-- Check phase: `cargo test`, `cargo clippy`
-- Output: `result/bin/scientific-assistant`
+**2. `packages.bridge`** (`buildNpmPackage`)
+- **Layer**: Integration - TypeScript bridge + bundling
+- Depends on: `view` (copies `elm.js` to `build/`)
+- Builds: Vite bundles main.ts + elm.js → `dist/`
+- Check: `vitest run` (TypeScript tests in `src/__tests__/`)
+- Output: `result/dist/` (index.html, bundled assets)
+- Source: `./bridge`
+- Note: Elm loaded via script tag, accessed as `window.Elm`
 
-**3. `packages.app`** (combines both)
-- Builds: Full Tauri bundle with frontend embedded
-- Output: `.AppImage`, `.deb`, etc.
+**3. `packages.platform`** (`buildRustPackage`)
+- **Layer**: Platform - Tauri + Rust native
+- Depends on: `bridge` (copies `dist/` to `../bridge/dist/`)
+- Builds: `cargo tauri build` → platform-specific bundles
+- Check: `cargo test`, `cargo clippy`
+- Output: `result/bin/bundle/` (.deb, .rpm on Linux; .msi, .nsis on Windows; .dmg, .platform on macOS)
+- Source: `./platform`
+- Config: Platform-specific via `tauri.{linux,windows,macos}.conf.json`
+
+### **Package Groups** (organized by build vs dev):
+
+**Elm:**
+- `elmBuildTools`: elm, elm-format, elm-test (used in view build)
+- `elmDevTools`: elm-json, elm-review (dev shell only)
+
+**Rust:**
+- `rustCoreTools`: cargo, rustc (dev shell, provided by buildRustPackage in builds)
+- `rustBuildTools`: clippy, rustfmt (used in platform checkPhase)
+- `rustDevTools`: rust-analyzer, cargo-watch (dev shell only)
+
+**Tauri:**
+- `tauriBuildTools`: pkg-config, cargo-tauri, gobject-introspection (nativeBuildInputs)
+- `tauriRuntimeLibs`: at-spi2-atk, atkmm, cairo, glib, gtk3, harfbuzz, librsvg, libsoup_3, pango, webkitgtk_4_1, openssl (buildInputs)
+- `tauriDevPackages`: gdk-pixbuf, atk (dev shell only, for pkg-config .pc files)
+
+**Other:**
+- `nodeTools`: nodejs_22 (both build and dev)
+- `elmWatchTool`: elm-watch (from ./elm-watch flake, used in view builds and devShell)
+- `styleDevTools`: tailwindcss_4 (dev only)
+- `nixDevTools`: nixpkgs-fmt (dev only)
+- `gitDevTools`: gh (dev only)
+- `llmDevTools`: claude-code (dev only)
+
+**elm-watch flake:**
+- Standalone package in `./elm-watch/`
+- Packages elm-watch npm tool as Nix binary using buildNpmPackage + makeWrapper
+- Makes elm-watch available in view layer builds and devShell
+- Bridge uses local npm install for vite/vitest (run `setup` command first)
 
 ### **devshell commands**:
-- `dev` - Start Tauri dev mode (hot reload)
-- `build` - Build all packages (runs tests/checks)
-- `build:frontend` - Build frontend only
-- `build:backend` - Build backend only
-- `format` - Format all code
+- `dev` - Start Tauri dev mode (elm-watch + vite hot reload)
+- `build` - Build complete application (runs all tests/checks)
+- `build:view` - Build view layer (Elm UI)
+- `build:bridge` - Build bridge layer (TypeScript integration)
+- `build:platform` - Build platform layer (Tauri + Rust)
+- `format` - Format all code (Elm + Rust + Nix)
 - `clean` - Remove build artifacts
 
 ---
@@ -93,43 +157,73 @@ scientific-assistant/
 **Step 1: Create directories**
 
 ```bash
-mkdir -p frontend/src frontend/ts frontend/tests
-mkdir -p backend/src backend/capabilities backend/icons
+mkdir -p view/src view/tests
+mkdir -p bridge/src bridge/src/__tests__
+mkdir -p platform/src platform/capabilities platform/icons
 ```
+
+Note:
+- `view/dist/` - Elm compilation output (gitignored)
+- `bridge/build/` - elm.js from view (gitignored)
+- `bridge/dist/` - Vite bundle output (gitignored)
 
 ---
 
-## Task 2: Initialize Frontend (Minimal)
+## Task 2: Initialize View and Bridge Layers
 
-**Files to create**:
-- `frontend/package.json`
-- `frontend/elm.json`
-- `frontend/src/Main.elm`
-- `frontend/ts/main.ts`
-- `frontend/tsconfig.json`
-- `frontend/vite.config.ts`
-- `frontend/index.html`
-- `frontend/tests/MainTest.elm`
+**View layer files (Elm UI)**:
+- `view/elm.json` (use `elm init`)
+- `view/elm-watch.json`
+- `view/src/Main.elm`
+- `view/tests/MainTest.elm`
 
-### **frontend/package.json**
+**Bridge layer files (TypeScript integration)**:
+- `bridge/package.json`
+- `bridge/index.html`
+- `bridge/src/main.ts`
+- `bridge/src/__tests__/main.test.ts`
+- `bridge/tsconfig.json`
+- `bridge/vite.config.ts`
+- `bridge/vitest.config.ts`
+
+### **view/elm-watch.json**
 
 ```json
 {
-  "name": "scientific-assistant-frontend",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@tauri-apps/api": "^2.1.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.7.0",
-    "vite": "^6.0.0"
+  "targets": {
+    "Main": {
+      "inputs": [
+        "src/Main.elm"
+      ],
+      "output": "../bridge/build/elm.js"
+    }
   }
 }
 ```
 
-### **frontend/elm.json**
+Note: Outputs to bridge layer for both dev (elm-watch) and build (Nix copies).
+
+### **bridge/package.json**
+
+```json
+{
+  "name": "scientific-assistant-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.1"
+  },
+  "devDependencies": {
+    "elm-watch": "^1.2.3",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.7",
+    "vitest": "^4.0.15"
+  }
+}
+```
+
+### **view/elm.json**
 
 ```json
 {
@@ -142,30 +236,43 @@ mkdir -p backend/src backend/capabilities backend/icons
         "direct": {
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",
-            "elm/html": "1.0.0",
-            "elm/json": "1.1.3"
+            "elm/html": "1.0.1"
         },
         "indirect": {
+            "elm/json": "1.1.4",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
-            "elm/virtual-dom": "1.0.3"
+            "elm/virtual-dom": "1.0.5"
         }
     },
     "test-dependencies": {
-        "direct": {
-            "elm-explorations/test": "2.2.0"
-        },
-        "indirect": {
-            "elm/random": "1.0.0"
-        }
+        "direct": {},
+        "indirect": {}
     }
 }
 ```
 
-### **frontend/src/Main.elm**
+Note: Empty test-dependencies required for mkElmDerivation compatibility. Use `elm init` to generate.
+
+### **bridge/elm-watch.json**
+
+```json
+{
+  "targets": {
+    "Main": {
+      "inputs": [
+        "src/Main.elm"
+      ],
+      "output": "build/elm.js"
+    }
+  }
+}
+```
+
+### **view/src/Main.elm**
 
 ```elm
-module Main exposing (main)
+module Main exposing (Model, init, main)
 
 import Browser
 import Html exposing (Html, div, h1, p, text)
@@ -230,14 +337,12 @@ view : Model -> Html Msg
 view model =
     div [ class "flex flex-col items-center justify-center h-screen" ]
         [ h1 [ class "text-4xl font-bold mb-4" ] [ text model.message ]
-        , p [ class "text-gray-600" ] [ text "Elm + Tauri" ]
         ]
 ```
 
-### **frontend/ts/main.ts**
+### **bridge/src/main.ts**
 
 ```typescript
-// ts/main.ts
 import { invoke } from "@tauri-apps/api/core";
 
 declare global {
@@ -260,8 +365,8 @@ async function initApp(): Promise<void> {
     throw new Error("Root element #app not found");
   }
 
-  // Initialize Elm
-  const app = window.Elm.Main.init({ node: root });
+  // Initialize Elm (loaded via script tag)
+  const app: ElmApp = window.Elm.Main.init({ node: root });
 
   // Test Tauri command
   const greeting = await invoke<string>("greet", { name: "Elm" });
@@ -271,7 +376,7 @@ async function initApp(): Promise<void> {
 document.addEventListener("DOMContentLoaded", initApp);
 ```
 
-### **frontend/tsconfig.json**
+### **bridge/tsconfig.json**
 
 ```json
 {
@@ -291,11 +396,11 @@ document.addEventListener("DOMContentLoaded", initApp);
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["ts"]
+  "include": ["src"]
 }
 ```
 
-### **frontend/vite.config.ts**
+### **bridge/vite.config.ts**
 
 ```typescript
 import { defineConfig } from "vite";
@@ -306,7 +411,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     watch: {
-      ignored: ["**/backend/**"],
+      ignored: ["**/platform/**"],
     },
   },
   envPrefix: ["VITE_", "TAURI_"],
@@ -319,7 +424,33 @@ export default defineConfig({
 });
 ```
 
-### **frontend/index.html**
+Note: No Elm plugin needed - elm-watch compiles Elm to build/elm.js, Vite just bundles.
+
+### **bridge/vitest.config.ts**
+
+```typescript
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    include: ["src/**/__tests__/**/*.test.ts"],
+  },
+});
+```
+
+### **bridge/src/__tests__/main.test.ts**
+
+```typescript
+import { describe, it, expect } from "vitest";
+
+describe("main", () => {
+  it("basic smoke test", () => {
+    expect(1 + 1).toBe(2);
+  });
+});
+```
+
+### **bridge/index.html**
 
 ```html
 <!DOCTYPE html>
@@ -328,16 +459,18 @@ export default defineConfig({
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Scientific Assistant</title>
-    <script src="/dist/elm.js"></script>
+    <script src="/build/elm.js"></script>
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/ts/main.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
 ```
 
-### **frontend/tests/MainTest.elm**
+Note: Elm loaded via script tag, accessed as `window.Elm` in main.ts.
+
+### **view/tests/MainTest.elm**
 
 ```elm
 module MainTest exposing (..)
@@ -360,31 +493,45 @@ suite =
         ]
 ```
 
-**Step 2: Generate package-lock.json**
+**Step 2: Initialize Elm tests**
 
 ```bash
-cd frontend && npm install && cd ..
+cd view && elm-test init
 ```
+
+Note: Sets up test-dependencies in elm.json properly.
+
+**Step 3: Generate package-lock.json**
+
+```bash
+cd bridge && npm install --package-lock-only
+```
+
+Note: Uses `--package-lock-only` to avoid creating node_modules/ directory.
 
 ---
 
-## Task 3: Initialize Backend (Minimal)
+## Task 3: Initialize Platform Layer (Tauri + Rust)
 
 **Files to create**:
-- `backend/Cargo.toml`
-- `backend/src/main.rs`
-- `backend/src/lib.rs`
-- `backend/tauri.conf.json`
-- `backend/capabilities/default.json`
-- `backend/build.rs`
+- `platform/Cargo.toml`
+- `platform/src/main.rs`
+- `platform/src/lib.rs`
+- `platform/tauri.conf.json`
+- `platform/tauri.linux.conf.json`
+- `platform/tauri.windows.conf.json`
+- `platform/tauri.macos.conf.json`
+- `platform/capabilities/default.json`
+- `platform/build.rs`
+- `platform/icons/*.png, *.ico, *.icns`
 
-### **backend/Cargo.toml**
+### **platform/Cargo.toml**
 
 ```toml
 [package]
 name = "scientific-assistant"
 version = "0.1.0"
-description = "Scientific Assistant - Elm + Tauri"
+description = "Scientific Assistant"
 authors = ["Andrey Koppel"]
 edition = "2021"
 
@@ -406,10 +553,10 @@ panic = "abort"
 codegen-units = 1
 lto = true
 opt-level = "s"
-strip = true
+strip = "debuginfo"
 ```
 
-### **backend/src/main.rs**
+### **platform/src/main.rs**
 
 ```rust
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
@@ -419,7 +566,7 @@ fn main() {
 }
 ```
 
-### **backend/src/lib.rs**
+### **platform/src/lib.rs**
 
 ```rust
 #[tauri::command]
@@ -437,21 +584,21 @@ pub fn run() {
 }
 ```
 
-### **backend/tauri.conf.json**
+### **platform/tauri.conf.json**
 
 ```json
 {
-  "$schema": "https://schema.tauri.app/config/2",
+  "$schema": "https://schema.tauri.platform/config/2",
   "productName": "Scientific Assistant",
   "version": "0.1.0",
   "identifier": "com.akoppela.scientific-assistant",
   "build": {
-    "beforeDevCommand": "cd ../frontend && vite",
+    "beforeDevCommand": "",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "cd ../frontend && elm make src/Main.elm --optimize --output=dist/elm.js && vite build",
-    "frontendDist": "../frontend/dist"
+    "beforeBuildCommand": "",
+    "frontendDist": "../bridge/dist"
   },
-  "app": {
+  "platform": {
     "withGlobalTauri": true,
     "windows": [
       {
@@ -480,11 +627,45 @@ pub fn run() {
 }
 ```
 
-### **backend/capabilities/default.json**
+Note: beforeDevCommand and beforeBuildCommand are empty - workflow orchestrated via devshell commands.
+
+### **platform/tauri.linux.conf.json**
 
 ```json
 {
-  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "targets": ["deb", "rpm"]
+  }
+}
+```
+
+### **platform/tauri.windows.conf.json**
+
+```json
+{
+  "bundle": {
+    "targets": ["msi", "nsis"]
+  }
+}
+```
+
+### **platform/tauri.macos.conf.json**
+
+```json
+{
+  "bundle": {
+    "targets": ["dmg", "platform"]
+  }
+}
+```
+
+Note: Platform-specific configs auto-merge with main tauri.conf.json.
+
+### **platform/capabilities/default.json**
+
+```json
+{
+  "$schema": "https://schema.tauri.platform/config/2",
   "identifier": "default",
   "description": "Default capabilities for the main window",
   "windows": ["main"],
@@ -495,7 +676,7 @@ pub fn run() {
 }
 ```
 
-### **backend/build.rs**
+### **platform/build.rs**
 
 ```rust
 fn main() {
@@ -503,18 +684,35 @@ fn main() {
 }
 ```
 
-**Step 2: Create placeholder icons directory**
+**Step 2: Create placeholder icons**
 
 ```bash
-mkdir -p backend/icons
+cd platform/icons
+nix-shell -p 'python3.withPackages(ps: [ps.pillow])' --run 'python3 << EOF
+from PIL import Image
+
+# Create RGBA icons (Tauri requires alpha channel)
+for size in [32, 128]:
+    img = Image.new("RGBA", (size, size), (0, 0, 255, 255))
+    img.save(f"{size}x{size}.png")
+
+img128 = Image.new("RGBA", (128, 128), (0, 0, 255, 255))
+img128.save("128x128@2x.png")
+
+img32 = Image.new("RGBA", (32, 32), (0, 0, 255, 255))
+img32.save("icon.ico")
+img128.save("icon.icns")
+EOF
+'
+cd ../..
 ```
 
-Note: Icons directory is required by `tauri.conf.json` but will remain empty during bootstrap. Actual icons will be added in later phases.
+Note: Tauri requires RGBA PNG icons. These are blue placeholders. Replace with actual icons later.
 
 **Step 3: Generate Cargo.lock**
 
 ```bash
-cd backend && cargo generate-lockfile && cd ..
+cd platform && cargo generate-lockfile && cd ..
 ```
 
 ---
@@ -525,47 +723,115 @@ cd backend && cargo generate-lockfile && cd ..
 
 ```nix
 {
-  description = "Scientific Assistant - Elm + Tauri";
+  description = "Scientific Assistant";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     devshell.url = "github:numtide/devshell";
     devshell.inputs.nixpkgs.follows = "nixpkgs";
+    mkElmDerivation.url = "github:jeslie0/mkElmDerivation";
+    mkElmDerivation.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flake-utils, devshell }:
+  outputs = { self, nixpkgs, flake-utils, devshell, mkElmDerivation }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ devshell.overlays.default ];
+          overlays = [
+            devshell.overlays.default
+            mkElmDerivation.overlays.mkElmDerivation
+          ];
           config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
             "claude-code"
           ];
         };
 
-        # Frontend package
-        frontend = pkgs.buildNpmPackage {
-          name = "scientific-assistant-frontend";
-          src = ./frontend;
-          npmDepsHash = "";  # Will be filled in Task 5
+        # Reusable package groups (split by build vs dev)
 
-          nativeBuildInputs = [
-            pkgs.elmPackages.elm
-            pkgs.elmPackages.elm-test
-          ];
+        # Elm build tools (needed for Nix derivations)
+        elmBuildTools = with pkgs.elmPackages; [ elm elm-format elm-test ];
+
+        # Elm dev tools (dev shell only)
+        elmDevTools = with pkgs.elmPackages; [ elm-json elm-review ];
+
+        # Rust core tools (cargo/rustc - provided by buildRustPackage in builds, needed in dev shell)
+        rustCoreTools = with pkgs; [ cargo rustc ];
+
+        # Rust build tools (linters/formatters for checkPhase)
+        rustBuildTools = with pkgs; [ clippy rustfmt ];
+
+        # Rust dev tools (dev shell only)
+        rustDevTools = with pkgs; [ rust-analyzer cargo-watch ];
+
+        # Tauri build-time dependencies (run during compilation)
+        tauriBuildTools = with pkgs; [ pkg-config cargo-tauri gobject-introspection ];
+
+        # Tauri runtime libraries (linked into binary)
+        tauriRuntimeLibs = with pkgs; [ at-spi2-atk atkmm cairo glib gtk3 harfbuzz librsvg libsoup_3 pango webkitgtk_4_1 openssl ];
+
+        # Additional dev packages (for pkg-config, not linked)
+        tauriDevPackages = with pkgs; [ gdk-pixbuf atk ];
+
+        # Node.js (needed for both build and dev)
+        nodeTools = with pkgs; [ nodejs_22 ];
+
+        # CSS/Styling (dev only)
+        styleDevTools = with pkgs; [ tailwindcss_4 ];
+
+        # Nix formatter (dev only)
+        nixDevTools = with pkgs; [ nixpkgs-fmt ];
+
+        # Git/GitHub CLI (dev only)
+        gitDevTools = with pkgs; [ gh ];
+
+        # AI assistance (dev only)
+        llmDevTools = with pkgs; [ claude-code ];
+
+        # View layer (Elm UI)
+        view = pkgs.mkElmDerivation {
+          name = "scientific-assistant-view";
+          src = ./view;
+          elmJson = ./view/elm.json;
+
+          nativeBuildInputs = elmBuildTools;
 
           buildPhase = ''
-            # Build Elm
+            mkdir -p dist
             elm make src/Main.elm --optimize --output=dist/elm.js
+          '';
+
+          checkPhase = ''
+            elm-test
+            elm-format --validate src/
+          '';
+
+          installPhase = ''
+            mkdir -p $out/dist
+            cp dist/elm.js $out/dist/
+          '';
+
+          doCheck = true;
+        };
+
+        # Bridge layer (TypeScript integration + bundling)
+        bridge = pkgs.buildNpmPackage {
+          name = "scientific-assistant-bridge";
+          src = ./bridge;
+          npmDepsHash = "sha256-tWXiWnfJdRAgH/0EzJe5O/8B8iblTPYTHHD1nqHJkuc=";
+
+          buildPhase = ''
+            # Copy pre-compiled Elm from view layer
+            mkdir -p build
+            cp ${view}/dist/elm.js build/
 
             # Build with Vite
             npx vite build
           '';
 
           checkPhase = ''
-            elm-test
+            npx vitest run
           '';
 
           installPhase = ''
@@ -576,118 +842,63 @@ cd backend && cargo generate-lockfile && cd ..
           doCheck = true;
         };
 
-        # Backend package
-        backend = pkgs.rustPlatform.buildRustPackage {
-          name = "scientific-assistant-backend";
-          src = ./backend;
+        # Platform layer (Tauri + Rust native)
+        platform = pkgs.rustPlatform.buildRustPackage {
+          pname = "scientific-assistant";
+          version = "0.1.0";
+
+          src = ./platform;
 
           cargoLock = {
-            lockFile = ./backend/Cargo.lock;
+            lockFile = ./platform/Cargo.lock;
           };
 
-          nativeBuildInputs = [
-            pkgs.pkg-config
-            pkgs.cargo-tauri
-          ];
+          nativeBuildInputs = tauriBuildTools ++ rustBuildTools;
+          buildInputs = tauriRuntimeLibs;
 
-          buildInputs = [
-            pkgs.openssl
-            pkgs.webkitgtk_6_0
-            pkgs.gtk4
-            pkgs.libsoup_3
-            pkgs.librsvg
-          ];
+          buildPhase = ''
+            # Copy bridge layer output
+            mkdir -p ../bridge/dist
+            cp -r ${bridge}/dist/* ../bridge/dist/
+
+            # Build Tauri app
+            cargo tauri build
+          '';
 
           checkPhase = ''
             cargo test
-            cargo clippy -- -D warnings
-          '';
-
-          doCheck = true;
-        };
-
-        # Full application
-        app = pkgs.stdenv.mkDerivation {
-          name = "scientific-assistant";
-          version = "0.1.0";
-
-          src = ./.;
-
-          nativeBuildInputs = [
-            pkgs.cargo-tauri
-            pkgs.pkg-config
-          ];
-
-          buildInputs = [
-            pkgs.openssl
-            pkgs.webkitgtk_6_0
-            pkgs.gtk4
-            pkgs.libsoup_3
-            pkgs.librsvg
-          ];
-
-          buildPhase = ''
-            # Copy frontend dist
-            mkdir -p frontend/dist
-            cp -r ${frontend}/dist/* frontend/dist/
-
-            # Build Tauri app
-            cd backend
-            cargo tauri build
+            cargo clippy --all-targets -- -D warnings
           '';
 
           installPhase = ''
             mkdir -p $out/bin
             cp -r target/release/bundle $out/
           '';
+
+          doCheck = true;
         };
 
       in
       {
         packages = {
-          inherit frontend backend app;
-          default = app;
+          inherit view bridge platform;
+          default = platform;
         };
 
         devShells.default = pkgs.devshell.mkShell {
           name = "scientific-assistant";
 
-          packages = [
-            # Node.js
-            pkgs.nodejs_22
+          packages = elmBuildTools ++ elmDevTools
+                  ++ rustCoreTools ++ rustBuildTools ++ rustDevTools
+                  ++ tauriBuildTools ++ tauriRuntimeLibs
+                  ++ nodeTools
+                  ++ styleDevTools ++ nixDevTools ++ gitDevTools ++ llmDevTools;
 
-            # Elm
-            pkgs.elmPackages.elm
-            pkgs.elmPackages.elm-format
-            pkgs.elmPackages.elm-test
-            pkgs.elmPackages.elm-json
-            pkgs.elmPackages.elm-review
-
-            # Rust
-            pkgs.cargo
-            pkgs.rustc
-            pkgs.rustfmt
-            pkgs.clippy
-            pkgs.rust-analyzer
-            pkgs.cargo-watch
-            pkgs.cargo-tauri
-
-            # Tauri dependencies
-            pkgs.pkg-config
-            pkgs.openssl
-            pkgs.webkitgtk_6_0
-            pkgs.gtk4
-            pkgs.libsoup_3
-            pkgs.librsvg
-
-            # Styling
-            pkgs.tailwindcss_4
-
-            # Nix
-            pkgs.nixfmt-classic
-
-            # LLM
-            pkgs.claude-code
+          env = [
+            {
+              name = "PKG_CONFIG_PATH";
+              eval = "${pkgs.lib.makeSearchPathOutput "dev" "lib/pkgconfig" (tauriRuntimeLibs ++ tauriDevPackages)}:${pkgs.lib.makeSearchPathOutput "out" "lib/pkgconfig" (tauriRuntimeLibs ++ tauriDevPackages)}";
+            }
           ];
 
           commands = [
@@ -695,44 +906,50 @@ cd backend && cargo generate-lockfile && cd ..
               name = "dev";
               category = "development";
               help = "Start Tauri dev mode (hot reload)";
-              command = "cd backend && cargo tauri dev";
+              command = "(cd bridge && npx elm-watch hot --cwd ../view) & (cd bridge && npx vite) & (cd platform && cargo tauri dev)";
             }
             {
               name = "build";
               category = "build";
               help = "Build all packages (runs tests/checks)";
-              command = "nix build .#app";
+              command = "nix build .#platform";
             }
             {
-              name = "build:frontend";
+              name = "build:view";
               category = "build";
-              help = "Build frontend package only";
-              command = "nix build .#frontend";
+              help = "Build Elm only";
+              command = "nix build .#view";
             }
             {
-              name = "build:backend";
+              name = "build:bridge";
               category = "build";
-              help = "Build backend package only";
-              command = "nix build .#backend";
+              help = "Build bridge package only";
+              command = "nix build .#bridge";
+            }
+            {
+              name = "build:platform";
+              category = "build";
+              help = "Build platform package only";
+              command = "nix build .#platform";
             }
             {
               name = "format";
               category = "code quality";
               help = "Format all code (Elm + Rust + Nix)";
-              command = "elm-format frontend/src/ --yes && rustfmt backend/src/**/*.rs && nixfmt-classic flake.nix";
+              command = "elm-format view/src/ --yes && find platform/src -name '*.rs' -exec rustfmt {} + ; nixpkgs-fmt flake.nix";
             }
             {
               name = "clean";
               category = "maintenance";
               help = "Remove build artifacts";
-              command = "rm -rf result frontend/dist frontend/elm-stuff backend/target";
+              command = "rm -rf result view/dist view/elm-stuff bridge/build bridge/dist platform/target";
             }
           ];
 
           env = [
             {
-              name = "PATH";
-              prefix = "${frontend}/node_modules/.bin";
+              name = "PKG_CONFIG_PATH";
+              eval = "${pkgs.lib.makeSearchPathOutput "dev" "lib/pkgconfig" (tauriRuntimeLibs ++ tauriDevPackages)}:${pkgs.lib.makeSearchPathOutput "out" "lib/pkgconfig" (tauriRuntimeLibs ++ tauriDevPackages)}";
             }
           ];
         };
@@ -749,31 +966,41 @@ nix flake update
 
 ---
 
-## Task 5: Get Nix Hashes
+## Task 5: Get Nix Hashes and Verify Builds
 
-**Step 1: Get npmDepsHash**
-
-```bash
-nix build .#frontend 2>&1 | grep "got:" | awk '{print $2}'
-```
-
-Copy the hash and update `flake.nix` line with `npmDepsHash = "sha256-...";`
-
-**Step 2: Rebuild to verify**
+**Step 1: Build view (no hash needed)**
 
 ```bash
-nix build .#frontend
+nix build .#view
+ls -la result/dist/elm.js
 ```
 
-Expected: Build succeeds, `result/dist/` contains bundled files.
+Expected: Build succeeds, `result/dist/elm.js` exists (~107KB optimized).
 
-**Step 3: Build backend**
+**Step 2: Get npmDepsHash for bridge**
 
 ```bash
-nix build .#backend
+nix build .#bridge 2>&1 | grep "got:" | awk '{print $2}'
 ```
 
-Expected: Build succeeds (cargoLock handles dependencies automatically).
+Copy the hash and update `flake.nix` bridge package with `npmDepsHash = "sha256-...";`
+
+**Step 3: Rebuild bridge to verify**
+
+```bash
+nix build .#bridge
+ls -la result/dist/
+```
+
+Expected: Build succeeds, `result/dist/` contains bundled files (index.html, assets/).
+
+**Step 4: Build platform**
+
+```bash
+nix build .#platform
+```
+
+Expected: Build succeeds, tests and clippy pass (cargoLock handles dependencies automatically).
 
 ---
 
@@ -808,12 +1035,11 @@ Scientific Assistant: Desktop chat application for scientific work. Russian UI. 
 
 ```
 scientific-assistant/
-├── frontend/         # Elm + TypeScript + Vite
-│   ├── src/          # Elm modules
-│   ├── ts/           # TypeScript bridge
+├── bridge/         # Elm + TypeScript + Vite
+│   ├── src/          # Elm and TypeScript source
 │   ├── tests/        # Elm tests
 │   └── ...
-├── backend/          # Rust + Tauri
+├── platform/          # Rust + Tauri
 │   ├── src/          # Rust source
 │   └── ...
 ├── .claude/docs/     # Design documents
@@ -889,18 +1115,18 @@ From project root (inside `nix develop`):
 ```bash
 dev               # Start Tauri dev mode (hot reload)
 build             # Build all packages (runs tests/checks)
-build:frontend    # Build frontend only
-build:backend     # Build backend only
+build:bridge    # Build bridge only
+build:platform     # Build platform only
 format            # Format all code
 clean             # Remove build artifacts
 ```
 
 ## Testing
 
-| Level     | Tool       | When                     |
-|-----------|------------|--------------------------|
-| Elm unit  | elm-test   | During `build:frontend`  |
-| Rust unit | cargo test | During `build:backend`   |
+| Level     | Tool       | When                    |
+|-----------|------------|-------------------------|
+| Elm unit  | elm-test   | During `build:bridge`   |
+| Rust unit | cargo test | During `build:platform` |
 
 Tests run automatically during Nix builds.
 
@@ -952,7 +1178,7 @@ direnv allow  # or: nix develop
 ## Development
 
 ```bash
-dev    # Start Tauri app in dev mode (hot reload)
+dev    # Start Tauri platform in dev mode (hot reload)
 ```
 
 Browser opens at http://localhost:5173, Tauri window appears.
@@ -960,7 +1186,7 @@ Browser opens at http://localhost:5173, Tauri window appears.
 ## Build
 
 ```bash
-build  # Build production app (runs all tests/checks)
+build  # Build production platform (runs all tests/checks)
 ```
 
 Output: `result/bundle/`
@@ -969,25 +1195,24 @@ Output: `result/bundle/`
 
 All commands run from project root inside `nix develop`:
 
-| Command          | Purpose                           |
-|------------------|-----------------------------------|
-| `dev`            | Start dev mode (hot reload)       |
-| `build`          | Build all (runs tests/checks)     |
-| `build:frontend` | Build frontend only               |
-| `build:backend`  | Build backend only                |
-| `format`         | Format all code                   |
-| `clean`          | Remove build artifacts            |
+| Command          | Purpose                       |
+|------------------|-------------------------------|
+| `dev`            | Start dev mode (hot reload)   |
+| `build`          | Build all (runs tests/checks) |
+| `build:bridge`   | Build bridge only             |
+| `build:platform` | Build platform only           |
+| `format`         | Format all code               |
+| `clean`          | Remove build artifacts        |
 
 ## Project Structure
 
 ```
 scientific-assistant/
-├── frontend/         # Elm + TypeScript + Vite
-│   ├── src/          # Elm source
-│   ├── ts/           # TypeScript bridge
+├── bridge/         # Elm + TypeScript + Vite
+│   ├── src/          # Elm and TypeScript source
 │   ├── tests/        # Elm tests
 │   └── ...
-├── backend/          # Rust + Tauri
+├── platform/          # Rust + Tauri
 │   ├── src/          # Rust source
 │   └── ...
 ├── .claude/docs/     # Design documents
@@ -1020,13 +1245,17 @@ Elm (UI) ←→ Ports ←→ TypeScript ←→ Tauri (Rust)
 result
 result-*
 
-# Frontend
-frontend/node_modules/
-frontend/elm-stuff/
-frontend/dist/
+# View layer
+view/elm-stuff/
+view/dist/
 
-# Backend
-backend/target/
+# Bridge layer
+bridge/node_modules/
+bridge/build/
+bridge/dist/
+
+# Platform layer
+platform/target/
 
 # Environment
 .direnv/
@@ -1045,38 +1274,48 @@ backend/target/
 
 ## Task 8: Verify Full Stack
 
-**Step 1: Verify Elm compiles**
+**Step 1: Verify Elm compiles with elm-watch**
 
 ```bash
-cd frontend && elm make src/Main.elm --output=/dev/null
+cd view && elm-watch make
+ls -la ../bridge/build/elm.js
 ```
 
-Expected: "Success!"
+Expected: "Success!", `../bridge/build/elm.js` exists.
 
 **Step 2: Verify Rust compiles**
 
 ```bash
-cd backend && cargo check
+cd platform && cargo check
 ```
 
 Expected: No errors.
 
-**Step 3: Build frontend package**
+**Step 3: Build view package**
 
 ```bash
-nix build .#frontend
+nix build .#view
+ls -la result/dist/elm.js
+```
+
+Expected: Contains optimized `elm.js` (~107KB).
+
+**Step 4: Build bridge package**
+
+```bash
+nix build .#bridge
 ls -la result/dist/
 ```
 
-Expected: Contains `elm.js`, `index.html`, bundled assets.
+Expected: Contains `index.html`, bundled assets in `assets/`.
 
-**Step 4: Build backend package**
+**Step 5: Build platform package**
 
 ```bash
-nix build .#backend
+nix build .#platform
 ```
 
-Expected: Build succeeds, tests pass.
+Expected: Build succeeds, tests and clippy pass.
 
 **Step 5: Enter dev shell**
 
@@ -1109,14 +1348,14 @@ git add -A
 ```bash
 git commit -m "feat: bootstrap Elm + Tauri application with Nix
 
-- Initialize Tauri 2.x backend with Rust
-- Initialize Elm 0.19.1 frontend with TypeScript bridge
+- Initialize Tauri 2.x platform with Rust
+- Initialize Elm 0.19.1 bridge with TypeScript bridge
 - Configure Vite 6.x for development
 - Set up Nix flake with buildNpmPackage + buildRustPackage
 - Add devshell commands (dev, build, format, clean)
 - Integrate tests/checks into Nix build phases
 - Add CLAUDE.md and README.md documentation
-- Frontend/backend directory structure
+- Frontend/platform directory structure
 
 🤖 Generated with Claude Code
 
@@ -1143,21 +1382,29 @@ To:
 
 After execution, verify:
 
-- [ ] `frontend/` and `backend/` directories created with subdirectories
-- [ ] `backend/icons/` placeholder directory exists
-- [ ] All source files in place (Main.elm, lib.rs, etc.)
-- [ ] `frontend/package-lock.json` exists
-- [ ] `backend/Cargo.lock` exists
+- [ ] `view/`, `bridge/`, `platform/` directories created with subdirectories
+- [ ] `bridge/build/` directory exists (gitignored)
+- [ ] `platform/icons/` RGBA icons created
+- [ ] All source files in place (Main.elm, main.ts, lib.rs, etc.)
+- [ ] `view/elm-watch.json` exists (outputs to ../bridge/build/elm.js)
+- [ ] `view/elm.json` created with `elm init` + `elm-test init`
+- [ ] `bridge/package-lock.json` exists
+- [ ] `platform/Cargo.lock` exists
+- [ ] `platform/tauri.{linux,windows,macos}.conf.json` exist
 - [ ] `flake.nix` has valid `npmDepsHash`
-- [ ] `nix build .#frontend` succeeds
-- [ ] `nix build .#backend` succeeds
+- [ ] `flake.nix` uses mkElmDerivation with proper overlays
+- [ ] `flake.nix` has 10 package groups (build vs dev split)
+- [ ] `flake.nix` PKG_CONFIG_PATH configured via env
+- [ ] `nix build .#view` succeeds (elm.js ~107KB)
+- [ ] `nix build .#bridge` succeeds (dist/ with bundled assets)
+- [ ] `nix build .#platform` succeeds (.deb, .rpm created, tests + clippy pass)
 - [ ] `nix develop` enters shell without errors
-- [ ] `dev` command starts Tauri window
+- [ ] `cargo check` works in dev shell
 - [ ] CLAUDE.md and README.md created
-- [ ] .gitignore updated
+- [ ] .gitignore updated for three-layer structure
 - [ ] Git commit created
 - [ ] Design doc marked complete
 
 ---
 
-**Version**: 2.0 (Revised with Nix-managed dependencies)
+**Version**: 4.0 (Implemented with three-layer architecture: view, bridge, platform)

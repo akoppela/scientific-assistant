@@ -1,0 +1,16 @@
+{
+  "targets": {
+    "dev": {
+      "inputs": [
+        "src/Main.elm"
+      ],
+      "output": "../bridge/build/elm.js"
+    },
+    "build": {
+      "inputs": [
+        "src/Main.elm"
+      ],
+      "output": "dist/elm.js"
+    }
+  }
+}

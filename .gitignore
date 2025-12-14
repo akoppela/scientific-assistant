@@ -1,19 +1,34 @@
-# Elm
-elm-stuff/
-
-# Tauri
-src-tauri/target/
-
-# Node
-node_modules/
-dist/
-.vite/
-
 # Nix
-.direnv
+result
+result-*
 
-# Build
-*.log
+# View layer
+view/elm-stuff/
+view/dist/
+
+# Bridge layer
+bridge/node_modules/
+bridge/build/
+bridge/dist/
+
+# Platform layer
+platform/target/
+platform/gen/
+
+# elm-watch package
+elm-watch/node_modules/
+
+# Environment
+.direnv/
+.env
+
+# IDE
+.idea/
+*.swp
+.vscode/
 
 # OS
 .DS_Store
+
+# Emacs
+TAGS

@@ -1,0 +1,8 @@
+{
+  "name": "elm-watch-nix",
+  "version": "1.2.3",
+  "private": true,
+  "dependencies": {
+    "elm-watch": "^1.2.3"
+  }
+}

@@ -1,33 +1,90 @@
-# Scientific Assistant - Elm + Tauri
+# Scientific Assistant
 
-Fresh rewrite in Elm with Tauri backend.
+Desktop chat application for scientific work.
 
-## Why Elm?
+## Features
 
-- No runtime exceptions
-- Predictable behavior (no SolidJS timing issues)
-- Simple mental model
-- Guaranteed correctness
+- Chat with AI models (Gemini)
+- Image attachments and generation
+- Search grounding
+- Session export/import
+- Russian/English interface
+- Light/dark theme
 
-## Why Tauri?
+## Requirements
 
-- Lightweight (~5 MB vs Electron's ~120 MB)
-- Secure Rust backend
-- Built-in auto-updater
-- Cross-platform
+- Nix with flakes enabled
+- direnv (recommended)
 
 ## Setup
 
-Coming soon - will be initialized in fresh session.
+```bash
+git clone <repo>
+cd scientific-assistant
+direnv allow  # or: nix develop
+setup         # Install bridge dependencies (npm install)
+```
+
+## Development
+
+```bash
+dev  # Start Tauri app in dev mode (hot reload)
+```
+
+Starts elm-watch (hot reload), Vite dev server (http://localhost:5173), and Tauri window.
+
+## Build
+
+```bash
+build:platform  # Build production app (runs all tests/checks)
+```
+
+Output: `result/bundle/`
+
+## Commands
+
+All commands run from project root inside `nix develop`:
+
+| Command          | Purpose                             |
+|------------------|-------------------------------------|
+| `setup`          | Install bridge dependencies         |
+| `dev`            | Start dev mode (hot reload)         |
+| `build:view`     | Build view layer (Elm UI)           |
+| `build:bridge`   | Build bridge layer (TS integration) |
+| `build:platform` | Build platform layer (Tauri)        |
+| `format`         | Format all code                     |
+| `clean`          | Remove build artifacts              |
+
+## Project Structure
+
+```
+scientific-assistant/
+├── view/             # Elm UI layer
+│   ├── src/          # Elm source
+│   ├── tests/        # Elm tests
+│   └── ...
+├── bridge/           # TypeScript integration layer
+│   ├── src/          # TypeScript source
+│   ├── build/        # elm.js from view (gitignored)
+│   ├── dist/         # Vite output (gitignored)
+│   └── ...
+├── platform/         # Tauri native layer
+│   ├── src/          # Rust source
+│   └── ...
+├── .claude/docs/     # Design documents
+└── flake.nix         # Nix configuration
+```
 
 ## Architecture
 
 ```
-Frontend: Elm (pure functions, TEA architecture)
-Backend: Tauri (Rust commands)
-Bridge: Ports (Elm ←→ JS ←→ Tauri)
+Elm (UI) ←→ Ports ←→ TypeScript ←→ Tauri (Rust)
+                          ↓
+                   Cloudflare Proxy
+                          ↓
+                     Gemini API
 ```
 
 ---
 
-Previous Solid.js implementation: See `../legacy/`
+**Version**: 0.1.0
