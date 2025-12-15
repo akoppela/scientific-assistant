@@ -61,7 +61,7 @@
           [ at-spi2-atk atkmm cairo glib gtk3 harfbuzz librsvg libsoup_3 pango webkitgtk_4_1 openssl zlib stdenv.cc.cc.lib ]
         else
           [ openssl zlib stdenv.cc.cc.lib ];
-        tauriDevPackages = with pkgs; if pkgs.stdenv.isLinux then [ gdk-pixbuf atk ] else [ ];
+        tauriDevPackages = with pkgs; if pkgs.stdenv.isLinux then [ gdk-pixbuf ] else [ ];
 
         # Dev shell tools (development only, not used in builds)
         devTools = with pkgs; [
