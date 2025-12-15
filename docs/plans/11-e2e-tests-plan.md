@@ -6,7 +6,7 @@
 
 **Tech Stack:** Playwright, TypeScript, Tauri dev server
 
-**Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
+**Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
 ---
 
@@ -568,7 +568,7 @@ git commit -m "feat: add comprehensive E2E test suite
 
 **Step 3: Mark phase complete**
 
-Edit `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`:
+Edit `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
 
 Change line 23 from:
 ```

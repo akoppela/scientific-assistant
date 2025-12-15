@@ -6,7 +6,7 @@
 
 **Tech Stack:** Elm 0.19.1, elm/http, elm/json, Cloudflare Proxy, elm-json
 
-**Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
+**Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
 ---
 
@@ -1002,7 +1002,7 @@ git commit -m "feat: add chat message list with Gemini API integration
 
 **Step 3: Mark phase complete**
 
-Edit `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`:
+Edit `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
 
 Change line 19 from:
 ```

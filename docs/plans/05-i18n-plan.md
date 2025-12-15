@@ -6,7 +6,7 @@
 
 **Tech Stack:** YAML, elm-codegen, Node.js scripts, Elm 0.19.1
 
-**Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
+**Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
 ---
 
@@ -878,7 +878,7 @@ git commit -m "feat: add i18n system with YAML source of truth
 
 **Step 2: Mark phase complete**
 
-Edit `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`:
+Edit `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
 
 Change line 17 from:
 ```

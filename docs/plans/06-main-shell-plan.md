@@ -6,7 +6,7 @@
 
 **Tech Stack:** Elm 0.19.1, Tailwind CSS, elm-json for dependencies
 
-**Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
+**Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
 ---
 
@@ -843,7 +843,7 @@ git commit -m "feat: add main shell with Header and Input features
 
 **Step 3: Mark phase complete**
 
-Edit `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`:
+Edit `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
 
 Change line 18 from:
 ```

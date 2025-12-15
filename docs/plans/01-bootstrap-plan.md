@@ -6,7 +6,7 @@
 
 **Tech Stack:** Tauri 2.x, Elm 0.19.1, elm-watch 1.2.x (dev), Vite 7.x, TypeScript 5.9.x, vitest 4.x, Nix flakes with devshell, mkElmDerivation
 
-**Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
+**Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
 ---
 
@@ -81,7 +81,7 @@ scientific-assistant/
 │   ├── check-bridge.yaml   # run-parallel: vitest
 │   ├── check-platform.yaml # run-parallel: cargo test, clippy
 │   └── flake.nix           # Packages YAML configs
-├── .claude/docs/
+├── docs/
 ├── flake.nix
 ├── flake.lock
 ├── .envrc
@@ -1036,10 +1036,10 @@ Scientific Assistant: Desktop chat application for scientific work. Russian UI. 
 
 ## Documentation
 
-| Location                                                      | Purpose              |
-|---------------------------------------------------------------|----------------------|
-| `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md` | Migration design     |
-| `.claude/docs/plans/`                                         | Implementation plans |
+| Location                                              | Purpose              |
+|-------------------------------------------------------|----------------------|
+| `docs/plans/2025-12-13-elm-tauri-migration-design.md` | Migration design     |
+| `docs/plans/`                                         | Implementation plans |
 
 ## Stack
 
@@ -1056,14 +1056,14 @@ Scientific Assistant: Desktop chat application for scientific work. Russian UI. 
 
 ```
 scientific-assistant/
-├── bridge/         # Elm + TypeScript + Vite
+├── bridge/           # Elm + TypeScript + Vite
 │   ├── src/          # Elm and TypeScript source
 │   ├── tests/        # Elm tests
 │   └── ...
-├── platform/          # Rust + Tauri
+├── platform/         # Rust + Tauri
 │   ├── src/          # Rust source
 │   └── ...
-├── .claude/docs/     # Design documents
+├── docs/             # Design documents
 └── flake.nix         # Nix configuration
 ```
 
@@ -1229,14 +1229,14 @@ All commands run from project root inside `nix develop`:
 
 ```
 scientific-assistant/
-├── bridge/         # Elm + TypeScript + Vite
+├── bridge/           # Elm + TypeScript + Vite
 │   ├── src/          # Elm and TypeScript source
 │   ├── tests/        # Elm tests
 │   └── ...
-├── platform/          # Rust + Tauri
+├── platform/         # Rust + Tauri
 │   ├── src/          # Rust source
 │   └── ...
-├── .claude/docs/     # Design documents
+├── docs/             # Design documents
 └── flake.nix         # Nix configuration
 ```
 
@@ -1385,7 +1385,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 **Step 3: Mark phase complete**
 
-Update `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`:
+Update `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
 
 Change:
 ```

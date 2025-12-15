@@ -6,7 +6,7 @@
 
 **Tech Stack:** Tailwind CSS 4.x, PostCSS, CSS custom properties
 
-**Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
+**Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
 ---
 
@@ -698,7 +698,7 @@ git commit -m "feat: add Tailwind CSS with shadcn design tokens
 
 **Step 2: Mark phase complete**
 
-Edit `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`:
+Edit `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
 
 Change line 16 from:
 ```

@@ -4,10 +4,12 @@ Scientific Assistant: Desktop chat application for scientific work. Russian UI. 
 
 ## Documentation
 
-| Location                                                      | Purpose              |
-|---------------------------------------------------------------|----------------------|
-| `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md` | Migration design     |
-| `.claude/docs/plans/`                                         | Implementation plans |
+| Location                                              | Purpose              |
+|-------------------------------------------------------|----------------------|
+| `docs/plans/2025-12-13-elm-tauri-migration-design.md` | Migration design     |
+| `docs/plans/`                                         | Implementation plans |
+| `docs/backlog/`                                       | Notes and ideas      |
+| `docs/archive/`                                       | Completed docs       |
 
 ## Stack
 
@@ -49,7 +51,10 @@ scientific-assistant/
 │   ├── src/          # Worker source
 │   │   └── __tests__/  # vitest tests
 │   └── .dev.vars     # Local secrets (gitignored)
-├── .claude/docs/     # Design documents
+├── docs/             # Documentation
+│   ├── plans/        # Implementation plans
+│   ├── backlog/      # Notes and ideas
+│   └── archive/      # Completed docs
 └── flake.nix         # Nix configuration
 ```
 

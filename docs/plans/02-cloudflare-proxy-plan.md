@@ -6,7 +6,7 @@
 
 **Tech Stack:** Cloudflare Workers, Wrangler CLI (via Nix), TypeScript
 
-**Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
+**Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
 ---
 
@@ -559,7 +559,7 @@ git commit -m "feat: add authenticated Cloudflare proxy for Gemini API
 
 **Step 2: Mark phase complete**
 
-Edit `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`:
+Edit `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
 
 Change line 14 from:
 ```

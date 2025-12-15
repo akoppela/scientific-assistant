@@ -71,7 +71,7 @@ scientific-assistant/
 ├── platform/         # Tauri native layer
 │   ├── src/          # Rust source
 │   └── ...
-├── .claude/docs/     # Design documents
+├── docs/             # Documentation
 └── flake.nix         # Nix configuration
 ```
 

@@ -6,7 +6,7 @@
 
 **Tech Stack:** Elm 0.19.1, File API via ports, elm-json
 
-**Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
+**Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
 ---
 
@@ -759,7 +759,7 @@ git commit -m "feat: add chat features (attachments, model selector, search grou
 
 **Step 3: Mark phase complete**
 
-Edit `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`:
+Edit `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
 
 Change line 20 from:
 ```
