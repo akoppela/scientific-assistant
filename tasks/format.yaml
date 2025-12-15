@@ -1,0 +1,7 @@
+tasks:
+  - name: Elm formatting
+    cmd: elm-format view/src/ --yes
+  - name: Rust formatting
+    cmd: find platform/src -name '*.rs' -exec rustfmt {} +
+  - name: Nix formatting
+    cmd: find . -name '*.nix' -not -path '*/.*' -exec nixpkgs-fmt {} +

@@ -107,9 +107,10 @@ Mark `[x]` when phase complete. Each plan includes completion step that updates 
 
 ### Process Management
 
-| Tool   | Purpose                     |
-|--------|-----------------------------|
-| mprocs | Parallel dev process runner |
+| Tool         | Purpose                                  |
+|--------------|------------------------------------------|
+| mprocs       | Interactive TUI for dev processes        |
+| run-parallel | Parallel task runner with grouped output |
 
 ### Nix
 
@@ -348,19 +349,19 @@ Each phase produces a deployable application. Each plan marks completion in Prog
 5. **Update CLAUDE.md** — Add relevant guidelines for the feature
 6. **Mark complete** — Update progress tracking table
 
-| #  | Phase              | Description                                                                              | Output             |
-|----|--------------------|------------------------------------------------------------------------------------------|--------------------|
-| 1  | Bootstrap          | Three-layer architecture (view/bridge/platform), Nix builds, mprocs, elm-watch packaging | Working shell app  |
-| 2  | Cloudflare Proxy   | Deploy authenticated proxy via Wrangler                                                  | Secure API gateway |
-| 3  | Infrastructure     | Linting, formatting, CI/CD, Nix packaging                                                | Complete toolchain |
-| 4  | Re-design          | Tailwind + shadcn design tokens                                                          | Styled shell       |
-| 5  | i18n               | YAML → codegen pipeline, En/Ru                                                           | Translation system |
-| 6  | Main Shell         | Header, theme toggle, language toggle, input area                                        | Basic UI           |
-| 7  | Message List + LLM | Chat display, Gemini integration, streaming                                              | Core feature       |
-| 8  | Chat Features      | Attachments, model selector, search grounding                                            | Full input         |
-| 9  | Session Features   | Export, import, clear                                                                    | Data management    |
-| 10 | Tutorial           | Interactive walkthrough                                                                  | Onboarding         |
-| 11 | E2E Tests          | Playwright test suite                                                                    | Quality assurance  |
+| #  | Phase              | Description                                                                                     | Output             |
+|----|--------------------|-------------------------------------------------------------------------------------------------|--------------------|
+| 1  | Bootstrap          | Three-layer architecture, Nix builds, parallel task runner (run-parallel), unified check output | Working shell app  |
+| 2  | Cloudflare Proxy   | Deploy authenticated proxy via Wrangler                                                         | Secure API gateway |
+| 3  | Infrastructure     | Linting, formatting, CI/CD, Nix packaging                                                       | Complete toolchain |
+| 4  | Re-design          | Tailwind + shadcn design tokens                                                                 | Styled shell       |
+| 5  | i18n               | YAML → codegen pipeline, En/Ru                                                                  | Translation system |
+| 6  | Main Shell         | Header, theme toggle, language toggle, input area                                               | Basic UI           |
+| 7  | Message List + LLM | Chat display, Gemini integration, streaming                                                     | Core feature       |
+| 8  | Chat Features      | Attachments, model selector, search grounding                                                   | Full input         |
+| 9  | Session Features   | Export, import, clear                                                                           | Data management    |
+| 10 | Tutorial           | Interactive walkthrough                                                                         | Onboarding         |
+| 11 | E2E Tests          | Playwright test suite                                                                           | Quality assurance  |
 
 ### Phase Dependencies
 

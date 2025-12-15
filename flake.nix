@@ -11,12 +11,22 @@
 
     mkElmDerivation.url = "github:jeslie0/mkElmDerivation";
     mkElmDerivation.inputs.nixpkgs.follows = "nixpkgs";
+    mkElmDerivation.inputs.elm-watch.follows = "elm-watch";
 
     elm-watch.url = "path:./elm-watch";
     elm-watch.inputs.nixpkgs.follows = "nixpkgs";
+    elm-watch.inputs.flake-utils.follows = "flake-utils";
+
+    run-parallel.url = "path:./run-parallel";
+    run-parallel.inputs.nixpkgs.follows = "nixpkgs";
+    run-parallel.inputs.flake-utils.follows = "flake-utils";
+
+    tasks.url = "path:./tasks";
+    tasks.inputs.nixpkgs.follows = "nixpkgs";
+    tasks.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, devshell, mkElmDerivation, elm-watch }:
+  outputs = { self, nixpkgs, flake-utils, devshell, mkElmDerivation, elm-watch, run-parallel, tasks }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -64,8 +74,11 @@
         # elm-watch tool (packaged separately for Nix builds)
         elmWatchTool = [ elm-watch.packages.${system}.default ];
 
-        # Process runner (dev only)
-        processRunner = with pkgs; [ mprocs ];
+        # run-parallel tool (for checkPhase and one-shot tasks)
+        runParallelTool = [ run-parallel.packages.${system}.default ];
+
+        # Process runners (mprocs for interactive dev, run-parallel for one-shot tasks)
+        processRunners = runParallelTool ++ (with pkgs; [ mprocs ]);
 
         # CSS/Styling (dev only)
         styleDevTools = with pkgs; [ tailwindcss_4 ];
@@ -85,7 +98,7 @@
           src = ./view;
           elmJson = ./view/elm.json;
 
-          nativeBuildInputs = elmBuildTools ++ elmWatchTool;
+          nativeBuildInputs = elmBuildTools ++ elmWatchTool ++ runParallelTool;
 
           buildPhase = ''
             mkdir -p dist
@@ -94,8 +107,7 @@
           '';
 
           checkPhase = ''
-            elm-test
-            elm-format --validate src/
+            run-parallel ${tasks.packages.${system}.default}/check-view.yaml
           '';
 
           installPhase = ''
@@ -112,6 +124,8 @@
           src = ./bridge;
           npmDepsHash = "sha256-zvfNGfj9E/HHW4rZT3nNP5mQvWbN40wb4PwMAWGgzNo=";
 
+          nativeBuildInputs = runParallelTool;
+
           buildPhase = ''
             # Copy pre-compiled Elm from view layer
             mkdir -p build
@@ -122,7 +136,7 @@
           '';
 
           checkPhase = ''
-            npx vitest run
+            run-parallel ${tasks.packages.${system}.default}/check-bridge.yaml
           '';
 
           installPhase = ''
@@ -144,7 +158,7 @@
             lockFile = ./platform/Cargo.lock;
           };
 
-          nativeBuildInputs = tauriBuildTools ++ rustBuildTools;
+          nativeBuildInputs = tauriBuildTools ++ rustBuildTools ++ runParallelTool;
           buildInputs = tauriRuntimeLibs;
 
           buildPhase = ''
@@ -157,8 +171,7 @@
           '';
 
           checkPhase = ''
-            cargo test
-            cargo clippy --all-targets -- -D warnings
+            run-parallel ${tasks.packages.${system}.default}/check-platform.yaml
           '';
 
           installPhase = ''
@@ -195,7 +208,7 @@
             ++ rustDevTools  # language.rust provides rustc, cargo, clippy, rustfmt
             ++ tauriBuildTools  # language.c provides tauriRuntimeLibs via libraries/includes
             ++ nodeTools
-            ++ processRunner ++ styleDevTools ++ nixDevTools ++ gitDevTools ++ llmDevTools;
+            ++ processRunners ++ styleDevTools ++ nixDevTools ++ gitDevTools ++ llmDevTools;
 
           env = [
             {
@@ -220,7 +233,7 @@
               name = "dev";
               category = "development";
               help = "Start Tauri dev mode (hot reload)";
-              command = "mprocs --config mprocs/dev.yaml";
+              command = "mprocs --config tasks/dev.yaml";
             }
             {
               name = "build:view";
@@ -244,7 +257,7 @@
               name = "format";
               category = "code quality";
               help = "Format all code (Elm + Rust + Nix)";
-              command = "mprocs --config mprocs/format.yaml";
+              command = "run-parallel tasks/format.yaml";
             }
             {
               name = "clean";

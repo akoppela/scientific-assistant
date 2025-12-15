@@ -1,7 +1,0 @@
-procs:
-  elm:
-    cmd: ["elm-format", "view/src/", "--yes"]
-  rust:
-    cmd: ["sh", "-c", "find platform/src -name '*.rs' -exec rustfmt {} +"]
-  nix:
-    cmd: ["nixpkgs-fmt", "flake.nix"]

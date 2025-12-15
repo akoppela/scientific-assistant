@@ -68,9 +68,19 @@ scientific-assistant/
 │   ├── tauri.macos.conf.json
 │   └── build.rs
 ├── elm-watch/              # elm-watch packaged for Nix
-│   ├── package.json        # elm-watch only
+│   ├── package.json
 │   ├── package-lock.json
 │   └── flake.nix           # buildNpmPackage + makeWrapper
+├── run-parallel/           # Parallel task runner
+│   ├── run-parallel.sh
+│   └── flake.nix           # stdenv.mkDerivation
+├── tasks/                  # Task configurations
+│   ├── dev.yaml            # mprocs: elm-watch, vite, tauri
+│   ├── format.yaml         # run-parallel: Elm, Rust, Nix formatting
+│   ├── check-view.yaml     # run-parallel: elm-test, elm-format validate
+│   ├── check-bridge.yaml   # run-parallel: vitest
+│   ├── check-platform.yaml # run-parallel: cargo test, clippy
+│   └── flake.nix           # Packages YAML configs
 ├── .claude/docs/
 ├── flake.nix
 ├── flake.lock
@@ -129,17 +139,28 @@ scientific-assistant/
 
 **Other:**
 - `nodeTools`: nodejs_22 (both build and dev)
-- `elmWatchTool`: elm-watch (from ./elm-watch flake, used in view builds and devShell)
+- `elmWatchTool`: elm-watch (from ./elm-watch flake)
+- `runParallelTool`: run-parallel (from ./run-parallel flake, used in checkPhases)
+- `processRunners`: mprocs + run-parallel (interactive TUI + one-shot tasks)
 - `styleDevTools`: tailwindcss_4 (dev only)
 - `nixDevTools`: nixpkgs-fmt (dev only)
 - `gitDevTools`: gh (dev only)
 - `llmDevTools`: claude-code (dev only)
 
-**elm-watch flake:**
-- Standalone package in `./elm-watch/`
-- Packages elm-watch npm tool as Nix binary using buildNpmPackage + makeWrapper
-- Makes elm-watch available in view layer builds and devShell
-- Bridge uses local npm install for vite/vitest (run `setup` command first)
+**Packaged tools:**
+
+**elm-watch** (`./elm-watch/`):
+- Packages elm-watch npm tool using buildNpmPackage + makeWrapper
+- Used in: view builds, devShell
+
+**run-parallel** (`./run-parallel/`):
+- Parallel task runner with grouped, colored output
+- Reads YAML configs, runs tasks in parallel, groups output by task
+- Used in: checkPhases (all layers), format command, devShell
+
+**tasks** (`./tasks/`):
+- Packages all task YAML configurations
+- Used in: checkPhases reference configs via ${tasks.packages.${system}.default}/check-*.yaml
 
 ### **devshell commands**:
 - `dev` - Start Tauri dev mode (elm-watch + vite hot reload)

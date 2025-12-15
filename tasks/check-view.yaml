@@ -1,0 +1,5 @@
+tasks:
+  - name: Elm tests
+    cmd: elm-test
+  - name: Elm format validation
+    cmd: elm-format --validate src/

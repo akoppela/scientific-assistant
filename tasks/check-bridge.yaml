@@ -1,0 +1,3 @@
+tasks:
+  - name: TypeScript tests
+    cmd: npx vitest run

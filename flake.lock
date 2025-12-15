@@ -43,7 +43,9 @@
     },
     "elm-watch": {
       "inputs": {
-        "flake-utils": "flake-utils",
+        "flake-utils": [
+          "flake-utils"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -57,29 +59,6 @@
       "original": {
         "path": "./elm-watch",
         "type": "path"
-      }
-    },
-    "elm-watch_2": {
-      "inputs": {
-        "nixpkgs": [
-          "mkElmDerivation",
-          "nixpkgs"
-        ],
-        "npm-fix": "npm-fix",
-        "npmlock2nix": "npmlock2nix"
-      },
-      "locked": {
-        "lastModified": 1706304401,
-        "narHash": "sha256-992cypnhoRbsGkDc5/X241rafBML4EP0EuT6cBcaY/8=",
-        "owner": "jeslie0",
-        "repo": "elm-watch",
-        "rev": "2f1c6c0e69b163c15e2ce66f543c38021b2a0ea3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "jeslie0",
-        "repo": "elm-watch",
-        "type": "github"
       }
     },
     "flake-utils": {
@@ -100,28 +79,12 @@
         "type": "github"
       }
     },
-    "flake-utils_2": {
-      "inputs": {
-        "systems": "systems_2"
-      },
-      "locked": {
-        "lastModified": 1731533236,
-        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
     "mkElmDerivation": {
       "inputs": {
         "elm-spa": "elm-spa",
-        "elm-watch": "elm-watch_2",
+        "elm-watch": [
+          "elm-watch"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -156,51 +119,35 @@
         "type": "github"
       }
     },
-    "npm-fix": {
-      "inputs": {
-        "nixpkgs": [
-          "mkElmDerivation",
-          "elm-watch",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1706304213,
-        "narHash": "sha256-XN9ESRSOANR0iFbEMMY1C1jvgZlYJsXQYVAHxxRmn+c=",
-        "owner": "jeslie0",
-        "repo": "npm-lockfile-fix",
-        "rev": "e9851274afa12b04d98e694ed089aa9cde8d7349",
-        "type": "github"
-      },
-      "original": {
-        "owner": "jeslie0",
-        "repo": "npm-lockfile-fix",
-        "type": "github"
-      }
-    },
-    "npmlock2nix": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1673447413,
-        "narHash": "sha256-sJM82Sj8yfQYs9axEmGZ9Evzdv/kDcI9sddqJ45frrU=",
-        "owner": "nix-community",
-        "repo": "npmlock2nix",
-        "rev": "9197bbf397d76059a76310523d45df10d2e4ca81",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "npmlock2nix",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "devshell": "devshell",
         "elm-watch": "elm-watch",
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils",
         "mkElmDerivation": "mkElmDerivation",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "run-parallel": "run-parallel",
+        "tasks": "tasks"
+      }
+    },
+    "run-parallel": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1,
+        "narHash": "sha256-L7CU8/YEUpinVz/MlfTlffew++UtgAmtObPZxnz/feg=",
+        "path": "./run-parallel",
+        "type": "path"
+      },
+      "original": {
+        "path": "./run-parallel",
+        "type": "path"
       }
     },
     "systems": {
@@ -218,19 +165,24 @@
         "type": "github"
       }
     },
-    "systems_2": {
+    "tasks": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
       "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
+        "lastModified": 1,
+        "narHash": "sha256-LZXyfh9dUSbp36X2uMA2pMNhby7BcYNQIwY4t5IM7vo=",
+        "path": "./tasks",
+        "type": "path"
       },
       "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
+        "path": "./tasks",
+        "type": "path"
       }
     }
   },

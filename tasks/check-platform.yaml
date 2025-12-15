@@ -1,0 +1,5 @@
+tasks:
+  - name: Rust tests
+    cmd: cargo test
+  - name: Rust lints
+    cmd: cargo clippy --all-targets -- -D warnings
