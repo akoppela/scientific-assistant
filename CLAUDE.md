@@ -31,31 +31,38 @@ scientific-assistant/
 ├── view/             # Elm UI layer
 │   ├── src/          # Elm source
 │   ├── tests/        # Elm tests
+│   ├── review/       # elm-review configuration
 │   ├── dist/         # Elm output (gitignored)
-│   └── elm-watch.json  # Two targets: dev (→ bridge/build/), build (→ dist/)
+│   ├── elm-watch.json  # Two targets: dev (→ bridge/build/), build (→ dist/)
+│   └── default.nix   # Nix build definition
 ├── bridge/           # TypeScript integration layer
 │   ├── src/          # TypeScript source
 │   │   └── __tests__/  # vitest tests
 │   ├── build/        # elm.js from view (gitignored)
 │   ├── dist/         # Vite output (gitignored)
-│   └── ...
+│   └── default.nix   # Nix build definition
 ├── platform/         # Tauri native layer
 │   ├── src/          # Rust source
 │   ├── tauri.conf.json  # Main config
 │   ├── tauri.{linux,windows,macos}.conf.json  # Platform-specific
-│   └── ...
-├── elm-watch/        # elm-watch packaged for Nix
-│   ├── package.json  # elm-watch dependency
-│   └── flake.nix     # buildNpmPackage + makeWrapper
-├── cloudflare/       # Cloudflare Worker (Gemini proxy)
+│   └── default.nix   # Nix build definition (uses Crane)
+├── infra/            # Nix infrastructure packages
+│   ├── elm-watch/    # elm-watch packaged for Nix
+│   │   └── default.nix
+│   ├── run-parallel/ # Parallel task runner
+│   │   └── default.nix
+│   └── tasks/        # Task definitions (YAML)
+│       └── default.nix
+├── proxy/            # Cloudflare Worker (Gemini API proxy)
 │   ├── src/          # Worker source
 │   │   └── __tests__/  # vitest tests
-│   └── .dev.vars     # Local secrets (gitignored)
+│   ├── .dev.vars     # Local secrets (gitignored)
+│   └── default.nix   # Exports wrangler tool + package (with tests)
 ├── docs/             # Documentation
 │   ├── plans/        # Implementation plans
 │   ├── backlog/      # Notes and ideas
 │   └── archive/      # Completed docs
-└── flake.nix         # Nix configuration
+└── flake.nix         # Main Nix configuration (imports all default.nix files)
 ```
 
 ## Elm Rules
@@ -132,28 +139,38 @@ build:bridge    # Build bridge layer (TypeScript integration)
 build:platform  # Build platform layer (Tauri + Rust)
 format          # Format all code
 clean           # Remove build artifacts
-cf:test         # Run Cloudflare Worker tests
-cf:dev          # Start Cloudflare Worker dev server
-cf:deploy       # Deploy Cloudflare Worker
+proxy:test      # Run proxy tests
+proxy:dev       # Start proxy dev server
+proxy:deploy    # Deploy proxy to Cloudflare
 ```
 
-## Cloudflare Proxy
+## Linting Commands
 
-Worker at `cloudflare/` proxies Gemini API calls with authentication.
+From project root (inside `nix develop`):
+
+```bash
+cd view && elm-review           # Elm linting
+cd bridge && eslint src/        # TypeScript linting
+cd platform && cargo clippy     # Rust linting
+```
+
+## Proxy
+
+Cloudflare Worker at `proxy/` proxies Gemini API calls with authentication.
 
 **Local development:**
 1. Run `setup` (installs dependencies)
-2. Copy `cloudflare/.dev.vars.example` to `cloudflare/.dev.vars`
+2. Copy `proxy/.dev.vars.example` to `proxy/.dev.vars`
 3. Fill in `GEMINI_API_KEY` and `PROXY_API_KEY`
-4. Run `cf:dev`
+4. Run `proxy:dev`
 
 **Production deployment (once):**
 ```bash
 wrangler login
-cd cloudflare
+cd proxy
 wrangler secret put GEMINI_API_KEY
 wrangler secret put PROXY_API_KEY
-cf:deploy
+proxy:deploy
 ```
 
 **Usage from client:**
@@ -168,19 +185,38 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
 });
 ```
 
+## CI/CD
+
+**GitHub Actions workflows:**
+- `.github/workflows/ci.yml` - Runs on push/PR, executes `nix flake check`
+- `.github/workflows/release.yml` - Runs on version tags, builds for all platforms
+
+**Binary cache:**
+- Cachix cache: `scientific-assistant`
+- Setup: `cachix use scientific-assistant`
+- Push access requires `CACHIX_AUTH_TOKEN` secret in GitHub
+
+**Release process:**
+1. Tag version: `git tag v0.1.0 && git push --tags`
+2. GitHub Actions builds for Linux (x86_64), macOS (Apple Silicon), Windows (x86_64)
+3. Artifacts uploaded as draft release
+4. Review and publish release manually
+
 ## Build Architecture
 
 **Development workflow:**
-1. Run `setup` once to install npm dependencies (bridge + cloudflare)
+1. Run `setup` once to install npm dependencies (bridge + proxy)
 2. Run `dev` to start:
    - elm-watch hot dev (view/ → bridge/build/elm.js)
    - vite dev server (bridge/ with HMR)
    - cargo tauri dev (platform/ with webview)
 
-**Production (Nix three-layer):**
+**Production (Nix three-layer with Crane):**
 - view: elm-watch make build → dist/elm.js
 - bridge: Vite bundles main.ts + elm.js → dist/
-- platform: Cargo tauri build → .deb, .rpm (Linux), .msi, .nsis (Windows), .dmg, .app (macOS)
+- platform: Crane builds Rust deps (cached) → cargo tauri build → bundles
+  - Crane separates dependency builds for better caching
+  - Outputs: .deb, .rpm (Linux), .msi, .exe (Windows), .dmg, .app (macOS)
 
 **elm-watch targets:**
 - "dev": outputs to ../bridge/build/elm.js (for development)

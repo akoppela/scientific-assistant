@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import * as TauriCore from '@tauri-apps/api/core';
 
 declare global {
   interface Window {
@@ -15,17 +15,17 @@ interface ElmApp {
 }
 
 async function initApp(): Promise<void> {
-  const root = document.getElementById("app");
+  const root = document.getElementById('app');
   if (!root) {
-    throw new Error("Root element #app not found");
+    throw new Error('Root element #app not found');
   }
 
   // Initialize Elm (loaded via script tag)
-  const app: ElmApp = window.Elm.Main.init({ node: root });
+  void window.Elm.Main.init({ node: root });
 
   // Test Tauri command
-  const greeting = await invoke<string>("greet", { name: "Elm" });
+  const greeting = await TauriCore.invoke<string>('greet', { name: 'Elm' });
   console.log(greeting);
 }
 
-document.addEventListener("DOMContentLoaded", initApp);
+document.addEventListener('DOMContentLoaded', initApp);

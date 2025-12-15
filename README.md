@@ -55,6 +55,16 @@ All commands run from project root inside `nix develop`:
 | `format`         | Format all code                     |
 | `clean`          | Remove build artifacts              |
 
+## Linting
+
+All linting runs during Nix builds and in CI:
+
+```bash
+cd view && elm-review           # Elm linting
+cd bridge && eslint src/        # TypeScript linting
+cd platform && cargo clippy     # Rust linting
+```
+
 ## Project Structure
 
 ```
@@ -62,17 +72,22 @@ scientific-assistant/
 ├── view/             # Elm UI layer
 │   ├── src/          # Elm source
 │   ├── tests/        # Elm tests
-│   └── ...
+│   └── default.nix   # Nix build definition
 ├── bridge/           # TypeScript integration layer
 │   ├── src/          # TypeScript source
-│   ├── build/        # elm.js from view (gitignored)
-│   ├── dist/         # Vite output (gitignored)
-│   └── ...
+│   └── default.nix   # Nix build definition
 ├── platform/         # Tauri native layer
 │   ├── src/          # Rust source
-│   └── ...
+│   └── default.nix   # Nix build definition (Crane)
+├── infra/            # Nix infrastructure
+│   ├── elm-watch/default.nix
+│   ├── run-parallel/default.nix
+│   └── tasks/default.nix
+├── proxy/            # Cloudflare Worker (Gemini API proxy)
+│   ├── src/          # Worker source
+│   └── default.nix   # Wrangler tool + tests
 ├── docs/             # Documentation
-└── flake.nix         # Nix configuration
+└── flake.nix         # Main config (imports all default.nix)
 ```
 
 ## Architecture
@@ -80,10 +95,17 @@ scientific-assistant/
 ```
 Elm (UI) ←→ Ports ←→ TypeScript ←→ Tauri (Rust)
                           ↓
-                   Cloudflare Proxy
+                        Proxy
                           ↓
                      Gemini API
 ```
+
+## CI/CD
+
+- **CI**: Runs on push/PR to main - linting, tests, builds (all layers)
+- **Release**: Tag `v*` triggers multi-platform builds (Linux x86_64, macOS ARM, Windows x86_64)
+- **Binary Cache**: Cachix (`scientific-assistant`) for fast builds
+- **Outputs**: `.deb`, `.rpm` (Linux), `.dmg`, `.app` (macOS), `.msi`, `.exe` (Windows)
 
 ---
 

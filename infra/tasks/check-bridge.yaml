@@ -1,0 +1,7 @@
+tasks:
+  - name: TypeScript tests
+    cmd: npx vitest run
+  - name: TypeScript lint
+    cmd: eslint src/
+  - name: TypeScript format check
+    cmd: prettier --check "src/**/*.ts"

@@ -9,24 +9,16 @@
     devshell.url = "github:numtide/devshell";
     devshell.inputs.nixpkgs.follows = "nixpkgs";
 
-    mkElmDerivation.url = "github:jeslie0/mkElmDerivation";
+    # Using rkb's fork for docs.json + extraDeps support (required for elm-review)
+    # Official jeslie0/mkElmDerivation lacks these features
+    # TODO: Contribute docs.json support upstream or wait for merge
+    mkElmDerivation.url = "github:r-k-b/mkElmDerivation";
     mkElmDerivation.inputs.nixpkgs.follows = "nixpkgs";
-    mkElmDerivation.inputs.elm-watch.follows = "elm-watch";
 
-    elm-watch.url = "path:./elm-watch";
-    elm-watch.inputs.nixpkgs.follows = "nixpkgs";
-    elm-watch.inputs.flake-utils.follows = "flake-utils";
-
-    run-parallel.url = "path:./run-parallel";
-    run-parallel.inputs.nixpkgs.follows = "nixpkgs";
-    run-parallel.inputs.flake-utils.follows = "flake-utils";
-
-    tasks.url = "path:./tasks";
-    tasks.inputs.nixpkgs.follows = "nixpkgs";
-    tasks.inputs.flake-utils.follows = "flake-utils";
+    crane.url = "github:ipetkov/crane";
   };
 
-  outputs = { self, nixpkgs, flake-utils, devshell, mkElmDerivation, elm-watch, run-parallel, tasks }:
+  outputs = { self, nixpkgs, flake-utils, devshell, mkElmDerivation, crane }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -35,6 +27,7 @@
           overlays = [
             devshell.overlays.default
             mkElmDerivation.overlays.mkElmDerivation
+            mkElmDerivation.overlays.makeDotElmDirectoryCmd
           ];
 
           config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
@@ -42,154 +35,82 @@
           ];
         };
 
-        # Reusable package groups (split by build vs dev)
+        craneLib = crane.mkLib pkgs;
 
-        # Elm build tools (needed for Nix derivations)
-        elmBuildTools = with pkgs.elmPackages; [ elm elm-format elm-test ];
+        # Infrastructure packages (imported from infra/)
+        elm-watch = import ./infra/elm-watch { inherit pkgs; };
+        run-parallel = import ./infra/run-parallel { inherit pkgs; };
+        tasks = import ./infra/tasks { inherit pkgs; };
 
-        # Elm dev tools (dev shell only)
-        elmDevTools = with pkgs.elmPackages; [ elm-json elm-review ];
+        # Proxy (Cloudflare Worker with tests)
+        proxy = import ./proxy { inherit pkgs; };
 
-        # Rust core tools (cargo/rustc - provided by buildRustPackage in builds, needed in dev shell)
-        rustCoreTools = with pkgs; [ cargo rustc ];
-
-        # Rust build tools (linters/formatters for checkPhase)
+        # Build tools (used in nativeBuildInputs for layer builds)
+        elmBuildTools = (with pkgs.elmPackages; [ elm elm-format elm-test elm-review ]) ++ [ elm-watch ];
+        runParallelTool = [ run-parallel ];
+        tsLintTools = with pkgs; [ eslint prettier ];
         rustBuildTools = with pkgs; [ clippy rustfmt ];
-
-        # Rust dev tools (dev shell only)
-        rustDevTools = with pkgs; [ rust-analyzer cargo-watch ];
-
-        # Tauri build-time dependencies (run during compilation)
         tauriBuildTools = with pkgs; [ pkg-config cargo-tauri gobject-introspection ];
 
-        # Tauri runtime libraries (linked into binary)
+        # Runtime libraries (used in buildInputs for platform builds)
         tauriRuntimeLibs = with pkgs; [ at-spi2-atk atkmm cairo glib gtk3 harfbuzz librsvg libsoup_3 pango webkitgtk_4_1 openssl zlib stdenv.cc.cc.lib ];
+        tauriDevPackages = with pkgs; [ gdk-pixbuf atk ]; # For pkg-config in dev, not linked
 
-        # Additional dev packages (for pkg-config, not linked)
-        tauriDevPackages = with pkgs; [ gdk-pixbuf atk ];
+        # Dev shell tools (development only, not used in builds)
+        devTools = with pkgs; [
+          # Elm
+          pkgs.elmPackages.elm-json
 
-        # Node.js (needed for both build and dev)
-        nodeTools = with pkgs; [ nodejs_22 ];
+          # Rust
+          rust-analyzer
+          cargo-watch
 
-        # elm-watch tool (packaged separately for Nix builds)
-        elmWatchTool = [ elm-watch.packages.${system}.default ];
+          # Node/TypeScript
+          nodejs_22
 
-        # run-parallel tool (for checkPhase and one-shot tasks)
-        runParallelTool = [ run-parallel.packages.${system}.default ];
+          # Process management
+          mprocs
 
-        # Process runners (mprocs for interactive dev, run-parallel for one-shot tasks)
-        processRunners = runParallelTool ++ (with pkgs; [ mprocs ]);
+          # Styling
+          tailwindcss_4
 
-        # CSS/Styling (dev only)
-        styleDevTools = with pkgs; [ tailwindcss_4 ];
+          # Nix
+          nixpkgs-fmt
+          cachix
 
-        # Nix formatter (dev only)
-        nixDevTools = with pkgs; [ nixpkgs-fmt ];
+          # Git
+          gh
 
-        # Git/GitHub CLI (dev only)
-        gitDevTools = with pkgs; [ gh ];
+          # AI
+          claude-code
+        ] ++ [ proxy.wrangler ];
 
-        # Cloudflare Workers (dev only)
-        cloudflareDevTools = with pkgs; [ wrangler ];
-
-        # AI assistance (dev only)
-        llmDevTools = with pkgs; [ claude-code ];
-
-        # View layer (Elm UI)
-        view = pkgs.mkElmDerivation {
-          name = "scientific-assistant-view";
-          src = ./view;
-          elmJson = ./view/elm.json;
-
-          nativeBuildInputs = elmBuildTools ++ elmWatchTool ++ runParallelTool;
-
-          buildPhase = ''
-            mkdir -p dist
-            # Build "build" target (outputs to dist/elm.js)
-            elm-watch make --optimize build
-          '';
-
-          checkPhase = ''
-            run-parallel ${tasks.packages.${system}.default}/check-view.yaml
-          '';
-
-          installPhase = ''
-            mkdir -p $out/dist
-            cp dist/elm.js $out/dist/
-          '';
-
-          doCheck = true;
+        # Application layers (each has its own default.nix)
+        view = pkgs.callPackage ./view {
+          inherit elmBuildTools runParallelTool tasks;
         };
 
-        # Bridge layer (TypeScript integration + bundling)
-        bridge = pkgs.buildNpmPackage {
-          name = "scientific-assistant-bridge";
-          src = ./bridge;
-          npmDepsHash = "sha256-zvfNGfj9E/HHW4rZT3nNP5mQvWbN40wb4PwMAWGgzNo=";
-
-          nativeBuildInputs = runParallelTool;
-
-          buildPhase = ''
-            # Copy pre-compiled Elm from view layer
-            mkdir -p build
-            cp ${view}/dist/elm.js build/
-
-            # Build with Vite
-            npx vite build
-          '';
-
-          checkPhase = ''
-            run-parallel ${tasks.packages.${system}.default}/check-bridge.yaml
-          '';
-
-          installPhase = ''
-            mkdir -p $out
-            cp -r dist $out/
-          '';
-
-          doCheck = true;
+        bridge = pkgs.callPackage ./bridge {
+          inherit view runParallelTool tsLintTools tasks;
         };
 
-        # Platform layer (Tauri + Rust native)
-        platform = pkgs.rustPlatform.buildRustPackage {
-          pname = "scientific-assistant-platform";
-          version = "0.1.0";
-
-          src = ./platform;
-
-          cargoLock = {
-            lockFile = ./platform/Cargo.lock;
-          };
-
-          nativeBuildInputs = tauriBuildTools ++ rustBuildTools ++ runParallelTool;
-          buildInputs = tauriRuntimeLibs;
-
-          buildPhase = ''
-            # Copy bridge layer output
-            mkdir -p ../bridge/dist
-            cp -r ${bridge}/dist/* ../bridge/dist/
-
-            # Build Tauri app
-            cargo tauri build
-          '';
-
-          checkPhase = ''
-            run-parallel ${tasks.packages.${system}.default}/check-platform.yaml
-          '';
-
-          installPhase = ''
-            mkdir -p $out/bin
-            cp -r target/release/bundle $out/
-          '';
-
-          doCheck = true;
+        platform = pkgs.callPackage ./platform {
+          inherit craneLib bridge tauriBuildTools tauriRuntimeLibs rustBuildTools runParallelTool tasks;
         };
-
       in
       {
         packages = {
           inherit view bridge platform;
           default = platform;
+        };
+
+        checks = {
+          inherit view bridge platform;
+          proxy = proxy.package;
+          nix-fmt = pkgs.runCommand "check-nix-fmt" { nativeBuildInputs = [ pkgs.nixpkgs-fmt pkgs.findutils ]; } ''
+            find ${./.} -name '*.nix' -not -path '*/.*' -exec nixpkgs-fmt --check {} +
+            touch $out
+          '';
         };
 
         devShells.default = pkgs.devshell.mkShell {
@@ -207,18 +128,9 @@
             includes = tauriRuntimeLibs ++ tauriDevPackages;
           };
 
-          packages = elmBuildTools ++ elmDevTools ++ elmWatchTool
-            ++ rustDevTools  # language.rust provides rustc, cargo, clippy, rustfmt
-            ++ tauriBuildTools  # language.c provides tauriRuntimeLibs via libraries/includes
-            ++ nodeTools
-            ++ processRunners ++ styleDevTools ++ nixDevTools ++ gitDevTools ++ cloudflareDevTools ++ llmDevTools;
+          packages = elmBuildTools ++ runParallelTool ++ tsLintTools ++ tauriBuildTools ++ devTools;
 
           env = [
-            {
-              name = "PKG_CONFIG_PATH";
-              # language.c sets it but we need to add our packages
-              prefix = "${pkgs.lib.makeSearchPathOutput "dev" "lib/pkgconfig" (tauriRuntimeLibs ++ tauriDevPackages)}:${pkgs.lib.makeSearchPathOutput "out" "lib/pkgconfig" (tauriRuntimeLibs ++ tauriDevPackages)}";
-            }
             {
               name = "WEBKIT_DISABLE_DMABUF_RENDERER";
               value = 1;
@@ -230,13 +142,13 @@
               name = "setup";
               category = "development";
               help = "Install all npm dependencies (bridge + cloudflare)";
-              command = "run-parallel tasks/setup.yaml";
+              command = "run-parallel infra/tasks/setup.yaml";
             }
             {
               name = "dev";
               category = "development";
               help = "Start Tauri dev mode (hot reload)";
-              command = "mprocs --config tasks/dev.yaml";
+              command = "mprocs --config infra/tasks/dev.yaml";
             }
             {
               name = "build:view";
@@ -260,7 +172,7 @@
               name = "format";
               category = "code quality";
               help = "Format all code (Elm + Rust + Nix)";
-              command = "run-parallel tasks/format.yaml";
+              command = "run-parallel infra/tasks/format.yaml";
             }
             {
               name = "clean";
@@ -269,22 +181,22 @@
               command = "rm -rf result view/dist view/elm-stuff bridge/build bridge/dist platform/target";
             }
             {
-              name = "cf:test";
-              category = "cloudflare";
-              help = "Run Cloudflare Worker tests";
-              command = "cd cloudflare && npm test";
+              name = "proxy:test";
+              category = "proxy";
+              help = "Run proxy tests";
+              command = "cd proxy && npm test";
             }
             {
-              name = "cf:dev";
-              category = "cloudflare";
-              help = "Start Cloudflare Worker dev server";
-              command = "cd cloudflare && wrangler dev";
+              name = "proxy:dev";
+              category = "proxy";
+              help = "Start proxy dev server";
+              command = "cd proxy && wrangler dev";
             }
             {
-              name = "cf:deploy";
-              category = "cloudflare";
-              help = "Deploy Cloudflare Worker";
-              command = "cd cloudflare && wrangler deploy";
+              name = "proxy:deploy";
+              category = "proxy";
+              help = "Deploy proxy to Cloudflare";
+              command = "cd proxy && wrangler deploy";
             }
           ];
         };

@@ -15,12 +15,12 @@ bridge/dist/
 platform/target/
 platform/gen/
 
-# Cloudflare layer
-cloudflare/node_modules/
-cloudflare/.dev.vars
+# Proxy layer
+proxy/node_modules/
+proxy/.dev.vars
 
-# elm-watch package
-elm-watch/node_modules/
+# Infrastructure packages
+infra/elm-watch/node_modules/
 
 # Environment
 .direnv/

@@ -1,5 +1,0 @@
-tasks:
-  - name: Bridge dependencies
-    cmd: cd bridge && npm install
-  - name: Cloudflare dependencies
-    cmd: cd cloudflare && npm install

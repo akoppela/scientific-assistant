@@ -12,7 +12,7 @@ Replace Solid.js with Elm to eliminate runtime exceptions and timing issues. Add
 |----|--------------------|--------|-------------------------------|
 | 1  | Bootstrap          | [x]    | `01-bootstrap-plan.md`        |
 | 2  | Cloudflare Proxy   | [x]    | `02-cloudflare-proxy-plan.md` |
-| 3  | Infrastructure     | [ ]    | `03-infrastructure-plan.md`   |
+| 3  | Infrastructure     | [x]    | `03-infrastructure-plan.md`   |
 | 4  | Re-design          | [ ]    | `04-redesign-plan.md`         |
 | 5  | i18n               | [ ]    | `05-i18n-plan.md`             |
 | 6  | Main Shell         | [ ]    | `06-main-shell-plan.md`       |
@@ -76,7 +76,7 @@ Mark `[x]` when phase complete. Each plan includes completion step that updates 
 | Proxy   | Cloudflare Worker          | Authenticated Gemini gateway   |
 | DevEnv  | Nix flakes + devshell      | Reproducible builds, all deps  |
 | Process | mprocs                     | Parallel dev processes         |
-| CI/CD   | GitHub Actions             | Build artifacts, releases      |
+| CI/CD   | GitHub Actions + Cachix    | Multi-platform builds, caching |
 
 ## Tooling
 
@@ -98,12 +98,14 @@ Mark `[x]` when phase complete. Each plan includes completion step that updates 
 | elm-test   | Unit tests |
 | elm-watch  | Hot reload |
 
-### TypeScript (Bootstrap)
+### TypeScript
 
-| Tool   | Purpose           |
-|--------|-------------------|
-| vitest | Testing           |
-| Vite   | Build, dev server |
+| Tool     | Purpose           |
+|----------|-------------------|
+| vitest   | Testing           |
+| Vite     | Build, dev server |
+| eslint   | Linting           |
+| prettier | Formatting        |
 
 ### Process Management
 
@@ -112,13 +114,17 @@ Mark `[x]` when phase complete. Each plan includes completion step that updates 
 | mprocs       | Interactive TUI for dev processes        |
 | run-parallel | Parallel task runner with grouped output |
 
-### Nix
+### Nix & CI/CD
 
-| Tool        | Purpose             |
-|-------------|---------------------|
-| nixpkgs-fmt | Nix file formatting |
+| Tool        | Purpose                 |
+|-------------|-------------------------|
+| nixpkgs-fmt | Nix file formatting     |
+| Crane       | Rust dependency caching |
+| Cachix      | Binary cache (CI/CD)    |
 
-**Note:** Additional tools (eslint, prettier, elm-program-test, elm-codegen, cargo-tarpaulin, cargo-audit, Playwright) will be added in Infrastructure and later phases.
+**Phase 03 Complete:** eslint, prettier, elm-review, Crane, Cachix, multi-platform CI/CD workflows added.
+
+**Note:** Additional tools (elm-program-test, elm-codegen, cargo-tarpaulin, cargo-audit, Playwright) will be added in later phases.
 
 ## Elm Architecture
 
@@ -420,11 +426,12 @@ scientific-assistant/
 │   │   └── i18n.rs               # Generated (if needed)
 │   ├── Cargo.toml
 │   └── tauri.conf.json
-├── cloudflare/                   # Cloudflare Worker
+├── proxy/                        # Cloudflare Worker (Gemini API proxy)
 │   ├── src/
 │   │   └── index.ts              # Proxy worker
 │   ├── wrangler.toml             # Wrangler config
-│   └── package.json
+│   ├── package.json
+│   └── default.nix               # Wrangler tool + tests
 ├── styles/
 │   ├── main.css                  # Tailwind imports
 │   └── tokens.css                # shadcn design tokens

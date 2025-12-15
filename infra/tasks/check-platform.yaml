@@ -1,4 +1,6 @@
 tasks:
+  - name: Rust format check
+    cmd: cargo fmt --check
   - name: Rust tests
     cmd: cargo test
   - name: Rust lints

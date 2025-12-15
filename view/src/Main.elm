@@ -2,10 +2,10 @@ module Main exposing (Model, init, main)
 
 import Browser
 import Html exposing (Html, div, h1, p, text)
-import Html.Attributes exposing (class)
+import Html.Attributes
 
 
-main : Program () Model Msg
+main : Program () Model ()
 main =
     Browser.element
         { init = init
@@ -24,7 +24,7 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Cmd Msg )
+init : () -> ( Model, Cmd () )
 init _ =
     ( { message = "Scientific Assistant" }
     , Cmd.none
@@ -35,22 +35,16 @@ init _ =
 -- UPDATE
 
 
-type Msg
-    = NoOp
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        NoOp ->
-            ( model, Cmd.none )
+update : () -> Model -> ( Model, Cmd () )
+update _ model =
+    ( model, Cmd.none )
 
 
 
 -- SUBSCRIPTIONS
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model -> Sub ()
 subscriptions _ =
     Sub.none
 
@@ -59,7 +53,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Html ()
 view model =
     div
         [ Html.Attributes.style "display" "flex"

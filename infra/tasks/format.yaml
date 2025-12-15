@@ -1,6 +1,8 @@
 tasks:
   - name: Elm formatting
     cmd: elm-format view/src/ --yes
+  - name: TypeScript formatting
+    cmd: cd bridge && prettier --write "src/**/*.ts"
   - name: Rust formatting
     cmd: find platform/src -name '*.rs' -exec rustfmt {} +
   - name: Nix formatting

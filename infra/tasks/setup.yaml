@@ -1,0 +1,5 @@
+tasks:
+  - name: Bridge dependencies
+    cmd: cd bridge && npm install
+  - name: Proxy dependencies
+    cmd: cd proxy && npm install

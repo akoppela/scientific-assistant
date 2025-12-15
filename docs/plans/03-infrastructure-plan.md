@@ -1,12 +1,14 @@
 # Infrastructure Implementation Plan
 
-**Goal:** Set up linting, formatting, CI/CD pipeline, and Nix-based release packaging for all languages (Elm, Rust, TypeScript, Nix).
+**Goal:** Add elm-review configuration, ESLint/Prettier for TypeScript, and CI/CD workflows.
 
-**Architecture:** Pre-commit hooks run formatters and linters locally. GitHub Actions runs tests and builds on push. Nix flake provides reproducible builds. Release workflow builds Tauri artifacts for all platforms.
+**Architecture:** Pre-commit via `format` command. CI runs format checks, linting, tests, and builds on push. Release workflow builds Tauri artifacts for all platforms.
 
-**Tech Stack:** elm-format, elm-review, rustfmt, clippy, eslint, prettier, nixfmt, GitHub Actions, Nix flakes
+**Tech Stack:** elm-review, ESLint 9.x, Prettier 3.x, typescript-eslint, GitHub Actions, Crane, Cachix
 
 **Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
+
+**Status:** ✅ Complete - All tasks finished. Phase 03 marked complete in migration design doc.
 
 ---
 
@@ -19,21 +21,38 @@
 
 ---
 
-## Prerequisites
+## Already Done (Phase 01)
 
-- Bootstrap phase complete (Task 1)
-- GitHub repository created
-- Nix development shell working
+- Three-layer structure: `view/`, `bridge/`, `platform/`
+- Nix flake with devshell, all tools available
+- `tasks/format.yaml` — elm-format, rustfmt, nixpkgs-fmt
+- `tasks/check-view.yaml` — elm-test, elm-format validate
+- `tasks/check-bridge.yaml` — vitest
+- `tasks/check-platform.yaml` — cargo test, clippy
+- Tools in devShell: elm-review, clippy, rustfmt, nixpkgs-fmt
 
 ---
 
-## Task 1: Configure Elm Linting
+## Task 1: Configure Elm Review ✅
 
 **Files:**
-- Create: `review/src/ReviewConfig.elm`
-- Create: `review/elm.json`
+- Create: `view/review/src/ReviewConfig.elm`
+- Create: `view/review/elm.json`
+- Modify: `tasks/check-view.yaml`
 
-**Step 1: Create review elm.json**
+**Note:** Used `elm-review init` instead of manual creation, then customized the generated files.
+
+**Step 1: Initialize elm-review configuration**
+
+```bash
+cd view && elm-review init
+```
+
+This generates elm.json with elm-review 2.15.5 (latest compatible with nixpkgs CLI 2.13.4).
+
+**Step 2: Add rule packages to view/review/elm.json**
+
+Manually edit to add rule packages:
 
 ```json
 {
@@ -45,10 +64,11 @@
     "dependencies": {
         "direct": {
             "elm/core": "1.0.5",
-            "jfmengels/elm-review": "2.14.0",
-            "jfmengels/elm-review-unused": "1.2.3",
-            "jfmengels/elm-review-simplify": "2.1.1",
-            "jfmengels/elm-review-common": "1.3.3"
+            "jfmengels/elm-review": "2.15.5",
+            "jfmengels/elm-review-unused": "1.2.4",
+            "jfmengels/elm-review-simplify": "2.1.5",
+            "jfmengels/elm-review-common": "1.3.3",
+            "stil4m/elm-syntax": "7.3.9"
         },
         "indirect": {
             "elm/json": "1.1.3",
@@ -70,20 +90,20 @@
 }
 ```
 
-**Step 2: Create ReviewConfig.elm**
+**Step 3: Update view/review/src/ReviewConfig.elm**
 
 ```elm
 module ReviewConfig exposing (config)
 
-import Review.Rule exposing (Rule)
-import NoUnused.Variables
-import NoUnused.CustomTypeConstructors
 import NoUnused.CustomTypeConstructorArgs
+import NoUnused.CustomTypeConstructors
 import NoUnused.Dependencies
 import NoUnused.Exports
 import NoUnused.Modules
 import NoUnused.Parameters
 import NoUnused.Patterns
+import NoUnused.Variables
+import Review.Rule exposing (Rule)
 import Simplify
 
 
@@ -101,141 +121,542 @@ config =
     ]
 ```
 
-**Step 3: Verify elm-review runs**
+**Step 4: Update tasks/check-view.yaml**
 
-```bash
-elm-review
+```yaml
+tasks:
+  - name: Elm tests
+    cmd: elm-test
+  - name: Elm format validation
+    cmd: elm-format --validate src/
+  - name: Elm review
+    cmd: elm-review
 ```
 
-Expected: No errors (or only fixable suggestions).
+**Step 5: Create view/review/default.nix for Nix builds**
+
+elm-review requires additional setup to work in Nix sandbox (no network access):
+
+```nix
+{ pkgs, elmVersion ? "0.19.1", elmReviewVersion ? "2.13.3" }:
+
+let
+  # Read elm-review's internal dependencies from bundled elm.json files
+  elmReviewLib = "${pkgs.elmPackages.elm-review}/lib/node_modules/elm-review";
+  parserDeps = builtins.fromJSON (builtins.readFile "${elmReviewLib}/parseElm/elm.json");
+  codecDeps = builtins.fromJSON (builtins.readFile "${elmReviewLib}/ast-codec/elm.json");
+in
+pkgs.stdenv.mkDerivation {
+  name = "elm-review-cache";
+  src = ./.;
+
+  buildInputs = with pkgs.elmPackages; [ elm elm-review ];
+
+  installPhase = ''
+    ${pkgs.makeDotElmDirectoryCmd {
+      elmJson = ./elm.json;
+      extraDeps = [
+        parserDeps.dependencies.direct
+        parserDeps.dependencies.indirect
+        codecDeps.dependencies.direct
+        codecDeps.dependencies.indirect
+      ];
+    }}
+
+    set -e
+    mkdir -p .elm/elm-review/${elmReviewVersion}
+    ln -s ../../${elmVersion} .elm/elm-review/${elmReviewVersion}/${elmVersion}
+
+    mkdir -p $out
+    cp -r .elm $out/
+  '';
+}
+```
+
+This builds a cache with:
+- Review rule packages (from review/elm.json)
+- elm-review parser dependencies (parseElm/elm.json)
+- elm-review codec dependencies (ast-codec/elm.json)
+- Version symlinks for offline operation
+
+**Step 6: Update flake.nix for elm-review**
+
+Add to inputs (using rkb's fork for docs.json support):
+
+```nix
+# Using rkb's fork for docs.json + extraDeps support (required for elm-review)
+# Official jeslie0/mkElmDerivation lacks these features
+# Issue filed: https://github.com/jeslie0/mkElmDerivation/issues/18
+mkElmDerivation.url = "github:r-k-b/mkElmDerivation";
+```
+
+Add overlay:
+
+```nix
+overlays = [
+  devshell.overlays.default
+  mkElmDerivation.overlays.mkElmDerivation
+  mkElmDerivation.overlays.makeDotElmDirectoryCmd
+];
+```
+
+Add cache derivation:
+
+```nix
+elmReviewCache = pkgs.callPackage ./view/review { };
+```
+
+Update view's checkPhase:
+
+```nix
+checkPhase = ''
+  # Merge review packages into view's .elm directory
+  mkdir -p .elm/0.19.1
+  cp -r ${elmReviewCache}/.elm/0.19.1/* .elm/0.19.1/
+  chmod -R u+w .elm
+
+  # Copy review config
+  cp -r ${elmReviewCache}/review review
+
+  # Run all checks
+  run-parallel ${tasks.packages.${system}.default}/check-view.yaml
+'';
+```
+
+Move elm-review from elmDevTools to elmBuildTools:
+
+```nix
+elmBuildTools = with pkgs.elmPackages; [ elm elm-format elm-test elm-review ];
+elmDevTools = with pkgs.elmPackages; [ elm-json ];
+```
+
+**Step 7: Verify elm-review runs**
+
+```bash
+nix build .#view
+```
+
+Expected: Build succeeds, elm-review runs offline in checkPhase.
+
+**Note:** elm-review in Nix builds requires rkb's mkElmDerivation fork which adds:
+- docs.json fetching from package.elm-lang.org
+- extraDeps parameter for additional dependencies
+- See: https://discourse.elm-lang.org/t/enabling-pure-nix-builds-including-elm-review-elm-codegen/9969
 
 ---
 
-## Task 2: Configure TypeScript Linting
+## Task 2: Configure TypeScript Linting ✅
 
 **Files:**
-- Create: `eslint.config.js`
-- Create: `.prettierrc`
-- Modify: `package.json`
+- Create: `bridge/eslint.config.js`
+- Create: `bridge/.prettierrc`
+- Modify: `bridge/package.json` (config packages only, not binaries)
+- Modify: `bridge/tsconfig.json`
+- Modify: `tasks/check-bridge.yaml`
+- Modify: `tasks/format.yaml`
+- Modify: `flake.nix` (add ESLint/Prettier from Nix + wrangler override)
 
-**Step 1: Create eslint.config.js**
+**Note:** ESLint and Prettier **binaries** come from Nix packages, not npm. Only configuration packages remain in package.json.
+
+**Step 1: Create bridge/eslint.config.js**
+
+Based on legacy settings - uses `eslint-config-prettier`, enforces namespace imports, prevents type assertions:
 
 ```javascript
-// eslint.config.js
-import eslint from "@eslint/js";
-import tseslint from "typescript-eslint";
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   eslint.configs.recommended,
-  ...tseslint.configs.strict,
-  ...tseslint.configs.stylistic,
+  ...tseslint.configs.recommended,
+  prettier,
   {
-    ignores: ["dist/**", "node_modules/**", "src-tauri/**"],
+    rules: {
+      '@typescript-eslint/no-shadow': 'error',
+      'no-shadow': 'off',
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
   },
   {
-    files: ["**/*.ts"],
+    files: ['src/**/*.ts'],
+    ignores: ['src/**/*.test.ts'],
     rules: {
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_" },
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ImportSpecifier',
+          message: 'Use namespace imports: `import * as Name from "module"`',
+        },
       ],
-      "@typescript-eslint/explicit-function-return-type": "error",
-      "@typescript-eslint/no-explicit-any": "error",
     },
+  },
+  {
+    ignores: ['dist/**', 'node_modules/**', 'build/**'],
   }
 );
 ```
 
-**Step 2: Create .prettierrc**
+**Step 2: Create bridge/.prettierrc**
+
+Based on legacy settings:
 
 ```json
 {
-  "semi": true,
-  "singleQuote": false,
+  "printWidth": 120,
   "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
   "trailingComma": "es5",
-  "printWidth": 100
+  "bracketSpacing": true,
+  "arrowParens": "avoid",
+  "endOfLine": "lf"
 }
 ```
 
-**Step 3: Update package.json with lint scripts**
+**Step 3: Update bridge/tsconfig.json**
 
-Add to scripts section:
+Add stricter type-checking options from legacy (Elm-like guarantees):
 
 ```json
 {
-  "scripts": {
-    "lint": "eslint ts/",
-    "lint:fix": "eslint ts/ --fix",
-    "format": "prettier --write \"ts/**/*.ts\"",
-    "format:check": "prettier --check \"ts/**/*.ts\""
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+
+    // Strict Type-Checking (Elm-like guarantees)
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Module Resolution
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    // Output
+    "noEmit": true,
+    "skipLibCheck": true
   },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "build"]
+}
+```
+
+**Step 4: Update bridge/package.json**
+
+Add configuration packages only (binaries come from Nix):
+
+```json
+{
   "devDependencies": {
     "@eslint/js": "^9.16.0",
-    "eslint": "^9.16.0",
-    "prettier": "^3.4.0",
+    "eslint-config-prettier": "^10.1.0",
     "typescript-eslint": "^8.17.0"
   }
 }
 ```
 
-**Step 4: Install and verify**
+**Step 4b: Add ESLint/Prettier to flake.nix**
 
-```bash
-npm install
-npm run lint
-npm run format:check
+Add TypeScript linting tools from Nix:
+
+```nix
+# TypeScript linting tools (for checkPhase and dev)
+# wrangler removes its bundled prettier/eslint during build, so no conflict
+tsLintTools = with pkgs; [ eslint prettier ];
 ```
 
-Expected: No errors.
+Add to bridge derivation:
+
+```nix
+nativeBuildInputs = runParallelTool ++ tsLintTools;
+```
+
+Add to devShell:
+
+```nix
+packages = ... ++ tsLintTools ...
+```
+
+**Step 4c: Override wrangler to avoid conflicts**
+
+```nix
+# Override wrangler to fully remove prettier/eslint to avoid conflicts
+wrangler-patched = pkgs.wrangler.overrideAttrs (oldAttrs: {
+  postInstall = (oldAttrs.postInstall or "") + ''
+    # Remove prettier/eslint directories completely, not just binaries
+    rm -rf $out/lib/node_modules/prettier
+    rm -rf $out/lib/node_modules/eslint
+    rm -rf $out/lib/node_modules/typescript
+    rm -rf $out/lib/packages/wrangler/node_modules/prettier
+    rm -rf $out/lib/packages/wrangler/node_modules/eslint
+    rm -rf $out/lib/packages/wrangler/node_modules/typescript
+  '';
+});
+cloudflareDevTools = [ wrangler-patched ];
+```
+
+**Step 5: Update tasks/check-bridge.yaml**
+
+```yaml
+tasks:
+  - name: TypeScript tests
+    cmd: npx vitest run
+  - name: TypeScript lint
+    cmd: eslint src/
+  - name: TypeScript format check
+    cmd: prettier --check "src/**/*.ts"
+```
+
+**Step 6: Update tasks/format.yaml**
+
+```yaml
+tasks:
+  - name: Elm formatting
+    cmd: elm-format view/src/ --yes
+  - name: TypeScript formatting
+    cmd: cd bridge && prettier --write "src/**/*.ts"
+  - name: Rust formatting
+    cmd: find platform/src -name '*.rs' -exec rustfmt {} +
+  - name: Nix formatting
+    cmd: find . -name '*.nix' -not -path '*/.*' -exec nixpkgs-fmt {} +
+```
+
+**Step 7: Regenerate package-lock.json and verify**
+
+```bash
+cd bridge && npm install
+nix build .#bridge  # Verifies linting passes in Nix build
+```
+
+Expected: Build succeeds with no linting errors.
 
 ---
 
-## Task 3: Configure Rust Linting
+## Task 3: Configure Rust Linting ✅
 
 **Files:**
-- Create: `src-tauri/rustfmt.toml`
-- Create: `src-tauri/.clippy.toml`
+- Create: `platform/rustfmt.toml`
+- Create: `platform/.clippy.toml`
+- Modify: `tasks/check-platform.yaml`
 
-**Step 1: Create rustfmt.toml**
+**Step 1: Create platform/rustfmt.toml**
 
 ```toml
-# src-tauri/rustfmt.toml
 edition = "2021"
-max_width = 100
+max_width = 120
 tab_spaces = 4
 use_small_heuristics = "Default"
 ```
 
-**Step 2: Create .clippy.toml**
+**Step 2: Create platform/.clippy.toml**
 
 ```toml
-# src-tauri/.clippy.toml
 cognitive-complexity-threshold = 25
 ```
 
-**Step 3: Verify Rust linting**
+**Step 3: Update tasks/check-platform.yaml**
+
+Add format check:
+
+```yaml
+tasks:
+  - name: Rust format check
+    cmd: cargo fmt --check
+  - name: Rust tests
+    cmd: cargo test
+  - name: Rust lints
+    cmd: cargo clippy --all-targets -- -D warnings
+```
+
+**Step 4: Verify Rust linting**
 
 ```bash
-cd src-tauri
-cargo fmt --check
-cargo clippy -- -D warnings
-cd ..
+cd platform && run-parallel ../tasks/check-platform.yaml
 ```
 
 Expected: No errors.
 
 ---
 
-## Task 4: Create CI Workflow
+## Task 4: Migrate to Crane for Rust Builds
+
+**Goal:** Replace `buildRustPackage` with Crane for better caching. Dependencies cached separately from project code.
+
+**Files:**
+- Modify: `flake.nix`
+
+**Step 1: Add crane input to flake.nix**
+
+```nix
+inputs = {
+  # ... existing inputs ...
+
+  crane.url = "github:ipetkov/crane";
+  crane.inputs.nixpkgs.follows = "nixpkgs";
+};
+```
+
+**Step 2: Update outputs to use crane**
+
+```nix
+outputs = { self, nixpkgs, flake-utils, devshell, mkElmDerivation, crane }:
+  flake-utils.lib.eachDefaultSystem (system:
+    let
+      pkgs = import nixpkgs { /* ... */ };
+
+      craneLib = crane.lib.${system};
+
+      # ... other definitions ...
+```
+
+**Step 3: Update platform derivation**
+
+Replace `rustPlatform.buildRustPackage` with Crane's two-step build:
+
+```nix
+# Platform layer (Tauri + Rust native) - using Crane for caching
+platformSrc = ./platform;
+
+# Step 1: Build dependencies only (cached separately)
+platformCargoArtifacts = craneLib.buildDepsOnly {
+  src = platformSrc;
+
+  nativeBuildInputs = tauriBuildTools;
+  buildInputs = tauriRuntimeLibs;
+
+  # Tauri needs bridge output for build.rs
+  preBuild = ''
+    mkdir -p ../bridge/dist
+    cp -r ${bridge}/dist/* ../bridge/dist/
+  '';
+};
+
+# Step 2: Build project using cached artifacts
+platform = craneLib.buildPackage {
+  src = platformSrc;
+  cargoArtifacts = platformCargoArtifacts;
+
+  nativeBuildInputs = tauriBuildTools ++ rustBuildTools ++ [ run-parallel ];
+  buildInputs = tauriRuntimeLibs;
+
+  preBuild = ''
+    mkdir -p ../bridge/dist
+    cp -r ${bridge}/dist/* ../bridge/dist/
+  '';
+
+  buildPhaseCargoCommand = "cargo tauri build";
+
+  checkPhase = ''
+    run-parallel ${tasks}/check-platform.yaml
+  '';
+
+  installPhase = ''
+    mkdir -p $out
+    cp -r target/release/bundle $out/
+  '';
+
+  doCheck = true;
+};
+```
+
+**Caching benefit:**
+- `platformCargoArtifacts`: Rebuilds only when `Cargo.lock` changes
+- `platform`: Rebuilds only when `src/` changes, uses cached deps
+- With Cachix: deps download instantly in CI after first build
+
+**Step 4: Update flake.lock**
+
+```bash
+nix flake update
+```
+
+---
+
+## Task 5: Setup Cachix
+
+**Goal:** Configure Cachix for local development and CI/CD. Cache Nix builds to avoid rebuilding.
+
+**Files:**
+- Modify: `flake.nix` (add cachix to devShell)
+- Create: `.github/workflows/ci.yml` (with Cachix)
+- Create: `.github/workflows/release.yml` (with Cachix)
+
+**Step 1: One-time manual setup**
+
+```bash
+# Create Cachix account at https://cachix.org
+# Create a binary cache named "scientific-assistant"
+
+# Login locally
+cachix authtoken <your-token>
+
+# Use the cache
+cachix use scientific-assistant
+```
+
+**Step 2: Add cachix to devShell**
+
+In `flake.nix`, add to nixDevTools:
+
+```nix
+nixDevTools = with pkgs; [ nixpkgs-fmt cachix ];
+```
+
+**Step 3: Add GitHub secret**
+
+Repository → Settings → Secrets → Actions:
+- Name: `CACHIX_AUTH_TOKEN`
+- Value: Your Cachix auth token
+
+**Step 4: Local usage**
+
+```bash
+# Push local builds to cache (optional, CI does this automatically)
+nix build .#view | cachix push scientific-assistant
+```
+
+---
+
+## Task 6: Create CI Workflow
 
 **Files:**
 - Create: `.github/workflows/ci.yml`
+- Modify: `flake.nix` (add checks output)
 
-**Step 1: Create CI workflow**
+**Step 1: Add checks output to flake.nix**
+
+Add after `devShells.default`:
+
+```nix
+checks = {
+  inherit view bridge platform;
+  nix-fmt = pkgs.runCommand "check-nix-fmt" { nativeBuildInputs = [ pkgs.nixpkgs-fmt pkgs.findutils ]; } ''
+    find ${./.} -name '*.nix' -not -path '*/.*' -exec nixpkgs-fmt --check {} +
+    touch $out
+  '';
+};
+```
+
+**Step 2: Create CI workflow**
+
+Leverages Nix + Cachix for fast cached builds on all platforms:
 
 ```yaml
-# .github/workflows/ci.yml
 name: CI
 
 on:
@@ -244,120 +665,59 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   check:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            system: x86_64-linux
+          - os: macos-latest
+            system: aarch64-darwin
+          - os: windows-latest
+            system: x86_64-windows
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v27
+        uses: cachix/install-nix-action@v31
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
-      - name: Cache Nix store
-        uses: actions/cache@v4
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
         with:
-          path: /nix/store
-          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
-          restore-keys: nix-${{ runner.os }}-
+          name: scientific-assistant
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
-      - name: Check Elm
-        run: |
-          nix develop --command bash -c "
-            elm make src/Main.elm --output=/dev/null
-            elm-format src/ --validate
-            elm-review
-          "
-
-      - name: Check TypeScript
-        run: |
-          nix develop --command bash -c "
-            npm ci
-            npm run lint
-            npm run format:check
-          "
-
-      - name: Check Rust
-        run: |
-          nix develop --command bash -c "
-            cd src-tauri
-            cargo fmt --check
-            cargo clippy -- -D warnings
-          "
-
-      - name: Check Nix
-        run: |
-          nix develop --command bash -c "
-            nixfmt --check flake.nix
-          "
-
-  test:
-    runs-on: ubuntu-latest
-    needs: check
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-
-      - name: Cache Nix store
-        uses: actions/cache@v4
-        with:
-          path: /nix/store
-          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
-          restore-keys: nix-${{ runner.os }}-
-
-      - name: Run Elm tests
-        run: nix develop --command elm-test
-
-      - name: Run Rust tests
-        run: |
-          nix develop --command bash -c "
-            cd src-tauri
-            cargo test
-          "
-
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-
-      - name: Install Tauri deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
-      - name: Build
-        run: |
-          nix develop --command bash -c "
-            npm ci
-            npm run tauri build
-          "
+      - name: Run all checks
+        run: nix flake check
 ```
+
+Note:
+- Runs on all target platforms: Linux x86_64, macOS ARM, Windows x86_64
+- Cachix downloads cached packages before build
+- Cachix pushes newly built packages after build
+- `nix flake check` runs all checks: view, bridge, platform, nix-fmt
+- Subsequent runs are fast (deps already cached)
+- Platform-specific issues caught early in CI
 
 ---
 
-## Task 5: Create Release Workflow
+## Task 7: Create Release Workflow
 
 **Files:**
 - Create: `.github/workflows/release.yml`
 
 **Step 1: Create release workflow**
 
+Uses Nix + Cachix for all platforms:
+
 ```yaml
-# .github/workflows/release.yml
 name: Release
 
 on:
@@ -366,172 +726,501 @@ on:
       - "v*"
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-    outputs:
-      release_id: ${{ steps.create-release.outputs.id }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Create Release
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          draft: true
-          prerelease: false
-
-  build-tauri:
-    needs: create-release
+  build:
     strategy:
-      fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
-            target: aarch64-apple-darwin
-          - platform: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
-          - platform: windows-latest
-            target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest
+            system: x86_64-linux
+          - os: macos-latest
+            system: aarch64-darwin
+          - os: windows-latest
+            system: x86_64-windows
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
         with:
-          node-version: 22
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
-      - name: Install Rust
-        uses: dtolnay/rust-action@stable
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
         with:
-          targets: ${{ matrix.target }}
+          name: scientific-assistant
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
-      - name: Install dependencies (Ubuntu)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: Build platform
+        run: nix build .#platform
 
-      - name: Install Elm
-        run: npm install -g elm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Tauri
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          releaseId: ${{ needs.create-release.outputs.release_id }}
+          name: bundle-${{ matrix.os }}
+          path: result/bundle/
 
-  publish-release:
-    needs: [create-release, build-tauri]
+  release:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Publish Release
-        uses: actions/github-script@v7
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          script: |
-            github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: ${{ needs.create-release.outputs.release_id }},
-              draft: false
-            })
+          path: artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+Note:
+- Builds on all target platforms: Linux x86_64, macOS ARM (Apple Silicon), Windows x86_64
+- Cachix provides cached deps across all platforms
+- Nix handles cross-platform builds consistently
+- Artifacts: .deb, .rpm (Linux), .dmg, .app (macOS), .msi, .exe (Windows)
+- Draft releases allow manual review before publishing
 
 ---
 
-## Task 6: Add Format Scripts
+## Task 8: Reorganize Infrastructure Directory
 
-**Files:**
-- Modify: `package.json`
+**Goal:** Group all auxiliary stuff under `infra/`, consolidate sub-flakes into main flake.
 
-**Step 1: Update package.json with all format/lint commands**
+**Current structure:**
+```
+scientific-assistant/
+├── view/
+├── bridge/
+├── platform/
+├── elm-watch/       # has its own flake.nix
+├── run-parallel/    # has its own flake.nix
+├── tasks/           # has its own flake.nix
+├── cloudflare/
+├── docs/
+└── flake.nix        # imports sub-flakes as inputs
+```
 
-Complete scripts section:
+**New structure:**
+```
+scientific-assistant/
+├── view/            # main package
+├── bridge/          # main package
+├── platform/        # main package
+├── infra/           # infrastructure & tooling
+│   ├── elm-watch/   # elm-watch packaged for Nix
+│   ├── run-parallel/ # parallel task runner
+│   └── tasks/       # task definitions (YAML)
+├── proxy/           # Cloudflare Worker (Gemini API proxy)
+├── docs/
+└── flake.nix        # main flake with path inputs to infra/
+```
 
-```json
-{
-  "scripts": {
-    "dev": "vite",
-    "build": "elm make src/Main.elm --optimize --output=dist/elm.js && vite build",
-    "preview": "vite preview",
-    "tauri": "tauri",
-    "elm:build": "elm make src/Main.elm --output=dist/elm.js",
-    "elm:watch": "elm make src/Main.elm --output=dist/elm.js --debug",
-    "test": "elm-test",
-    "test:rust": "cd src-tauri && cargo test",
-    "lint": "eslint ts/",
-    "lint:fix": "eslint ts/ --fix",
-    "lint:elm": "elm-review",
-    "lint:elm:fix": "elm-review --fix",
-    "lint:rust": "cd src-tauri && cargo clippy -- -D warnings",
-    "format": "prettier --write \"ts/**/*.ts\" && elm-format src/ --yes",
-    "format:check": "prettier --check \"ts/**/*.ts\" && elm-format src/ --validate",
-    "format:rust": "cd src-tauri && cargo fmt",
-    "format:nix": "nixfmt flake.nix",
-    "check": "npm run format:check && npm run lint && npm run lint:elm && npm run lint:rust"
-  }
+**Note:** Proxy (Cloudflare Worker) kept in root directory as a separate deployment target.
+
+**Step 1: Move directories**
+
+```bash
+mkdir -p infra
+git mv elm-watch run-parallel tasks infra/
+```
+
+Note: proxy (Cloudflare Worker) kept in root as separate deployment.
+
+**Step 2: Convert flake.nix to default.nix**
+
+Each sub-flake becomes a `default.nix` that takes `pkgs` as argument:
+
+**infra/elm-watch/default.nix:**
+```nix
+{ pkgs }:
+
+pkgs.buildNpmPackage {
+  pname = "elm-watch-nix";
+  version = "1.2.3";
+
+  src = ./.;
+
+  npmDepsHash = "sha256-qDiH6VtBctUKGSzXokVG0PVr/iYSKsK2mSmp/5Hocus=";
+
+  nativeBuildInputs = [ pkgs.makeWrapper ];
+
+  dontNpmBuild = true;
+
+  installPhase = ''
+    mkdir -p $out/bin $out/lib
+
+    # Copy node_modules
+    cp -r node_modules $out/lib/node_modules
+
+    # Create wrapper for elm-watch
+    makeWrapper ${pkgs.nodejs_22}/bin/node $out/bin/elm-watch \
+      --add-flags "$out/lib/node_modules/.bin/elm-watch" \
+      --set NODE_PATH "$out/lib/node_modules"
+  '';
 }
 ```
 
-**Step 2: Verify all checks pass**
+**infra/run-parallel/default.nix:**
+```nix
+{ pkgs }:
 
-```bash
-npm run check
+pkgs.stdenv.mkDerivation {
+  pname = "run-parallel";
+  version = "1.0.0";
+
+  src = ./.;
+
+  installPhase = ''
+    mkdir -p $out/bin
+    cp run-parallel.sh $out/bin/run-parallel
+    chmod +x $out/bin/run-parallel
+  '';
+}
 ```
 
-Expected: All checks pass.
+**infra/tasks/default.nix:**
+```nix
+{ pkgs }:
+
+pkgs.stdenv.mkDerivation {
+  pname = "task-configs";
+  version = "1.0.0";
+
+  src = ./.;
+
+  installPhase = ''
+    mkdir -p $out
+    cp *.yaml $out/
+  '';
+}
+```
+
+**Step 3: Remove old flake files**
+
+```bash
+rm infra/elm-watch/flake.nix infra/elm-watch/flake.lock
+rm infra/run-parallel/flake.nix infra/run-parallel/flake.lock
+rm infra/tasks/flake.nix infra/tasks/flake.lock
+```
+
+**Step 4: Update main flake.nix - remove path inputs**
+
+Remove these inputs:
+```nix
+# DELETE these
+elm-watch.url = "path:./infra/elm-watch";
+run-parallel.url = "path:./infra/run-parallel";
+tasks.url = "path:./infra/tasks";
+```
+
+**Step 5: Update main flake.nix - import default.nix**
+
+Add to the `let` block:
+
+```nix
+elm-watch = import ./infra/elm-watch { inherit pkgs; };
+run-parallel = import ./infra/run-parallel { inherit pkgs; };
+tasks = import ./infra/tasks { inherit pkgs; };
+```
+
+**Step 6: Update checkPhase references**
+
+Update all references from `${tasks.packages.${system}.default}/` to `${tasks}/`:
+
+```nix
+# view derivation
+checkPhase = ''
+  run-parallel ${tasks}/check-view.yaml
+'';
+
+# bridge derivation
+checkPhase = ''
+  run-parallel ${tasks}/check-bridge.yaml
+'';
+
+# platform derivation
+checkPhase = ''
+  run-parallel ${tasks}/check-platform.yaml
+'';
+```
+
+Similarly update `elmWatchTool` and `runParallelTool` to use direct imports instead of `.packages.${system}.default`.
+
+**Step 7: Update devShell commands**
+
+Update task file paths from `tasks/` to `infra/tasks/`:
+
+```nix
+{
+  name = "setup";
+  command = "run-parallel infra/tasks/setup.yaml";
+}
+{
+  name = "dev";
+  command = "mprocs --config infra/tasks/dev.yaml";
+}
+{
+  name = "format";
+  command = "run-parallel infra/tasks/format.yaml";
+}
+```
+
+**Step 8: Extract layer builds to default.nix files**
+
+Create default.nix for each main layer to keep flake.nix clean:
+
+**view/default.nix:**
+```nix
+{ pkgs, elmBuildTools, elmWatchTool, runParallelTool, tasks }:
+
+let
+  elmReviewCache = pkgs.callPackage ./review { };
+in
+pkgs.mkElmDerivation {
+  name = "scientific-assistant-view";
+  src = ./.;
+  elmJson = ./elm.json;
+
+  nativeBuildInputs = elmBuildTools ++ elmWatchTool ++ runParallelTool;
+
+  buildPhase = ''
+    mkdir -p dist
+    elm-watch make --optimize build
+  '';
+
+  checkPhase = ''
+    mkdir -p .elm/0.19.1
+    cp -r ${elmReviewCache}/.elm/0.19.1/* .elm/0.19.1/
+    chmod -R u+w .elm
+
+    run-parallel ${tasks}/check-view.yaml
+  '';
+
+  installPhase = ''
+    mkdir -p $out/dist
+    cp dist/elm.js $out/dist/
+  '';
+
+  doCheck = true;
+}
+```
+
+**bridge/default.nix:**
+```nix
+{ pkgs, view, runParallelTool, tsLintTools, tasks }:
+
+pkgs.buildNpmPackage {
+  name = "scientific-assistant-bridge";
+  src = ./.;
+  npmDepsHash = "sha256-OinNutTEXVwTu1VQaMwaCD1TdSOFdO6NeacjzZILXwE=";
+
+  nativeBuildInputs = runParallelTool ++ tsLintTools;
+
+  dontNpmBuild = true;
+
+  buildPhase = ''
+    mkdir -p build
+    cp ${view}/dist/elm.js build/
+    npx vite build
+  '';
+
+  checkPhase = ''
+    run-parallel ${tasks}/check-bridge.yaml
+  '';
+
+  installPhase = ''
+    mkdir -p $out
+    cp -r dist $out/
+  '';
+
+  doCheck = true;
+}
+```
+
+**platform/default.nix:**
+```nix
+{ craneLib, bridge, tauriBuildTools, tauriRuntimeLibs, rustBuildTools, runParallelTool, tasks }:
+
+let
+  platformSrc = ./.;
+
+  platformCargoArtifacts = craneLib.buildDepsOnly {
+    src = platformSrc;
+    nativeBuildInputs = tauriBuildTools;
+    buildInputs = tauriRuntimeLibs;
+  };
+in
+craneLib.buildPackage {
+  src = platformSrc;
+  cargoArtifacts = platformCargoArtifacts;
+
+  nativeBuildInputs = tauriBuildTools ++ rustBuildTools ++ runParallelTool;
+  buildInputs = tauriRuntimeLibs;
+
+  preBuild = ''
+    mkdir -p ../bridge/dist
+    cp -r ${bridge}/dist/* ../bridge/dist/
+  '';
+
+  buildPhaseCargoCommand = "cargo tauri build";
+  doNotPostBuildInstallCargoBinaries = true;
+
+  checkPhase = ''
+    run-parallel ${tasks}/check-platform.yaml
+  '';
+
+  installPhase = ''
+    mkdir -p $out
+    cp -r target/release/bundle $out/
+  '';
+
+  doCheck = true;
+}
+```
+
+**Step 9: Rename cloudflare → proxy and extract wrangler**
+
+Rename directory and update commands:
+
+```bash
+git mv cloudflare proxy
+```
+
+Create **proxy/default.nix:**
+```nix
+{ pkgs }:
+
+let
+  wrangler-patched = pkgs.wrangler.overrideAttrs (oldAttrs: {
+    postInstall = (oldAttrs.postInstall or "") + ''
+      rm -rf $out/lib/node_modules/prettier
+      rm -rf $out/lib/node_modules/eslint
+      rm -rf $out/lib/node_modules/typescript
+      rm -rf $out/lib/packages/wrangler/node_modules/prettier
+      rm -rf $out/lib/packages/wrangler/node_modules/eslint
+      rm -rf $out/lib/packages/wrangler/node_modules/typescript
+    '';
+  });
+in
+{
+  package = pkgs.buildNpmPackage {
+    pname = "gemini-proxy";
+    version = "1.0.0";
+    src = ./.;
+    npmDepsHash = "sha256-...";
+
+    dontNpmBuild = true;
+
+    checkPhase = ''
+      npm test
+    '';
+
+    installPhase = ''
+      mkdir -p $out
+      cp -r . $out/
+    '';
+
+    doCheck = true;
+  };
+
+  wrangler = wrangler-patched;
+}
+```
+
+Update main flake.nix to call packages:
+
+```nix
+# Import proxy
+proxy = import ./proxy { inherit pkgs; };
+
+# Application layers
+view = pkgs.callPackage ./view {
+  inherit elmBuildTools elmWatchTool runParallelTool tasks;
+};
+
+bridge = pkgs.callPackage ./bridge {
+  inherit view runParallelTool tsLintTools tasks;
+};
+
+platform = pkgs.callPackage ./platform {
+  inherit craneLib bridge tauriBuildTools tauriRuntimeLibs rustBuildTools runParallelTool tasks;
+};
+
+# Dev tools
+proxyDevTools = [ proxy.wrangler ];
+```
+
+Update checks:
+
+```nix
+checks = {
+  inherit view bridge platform;
+  proxy = proxy.package;
+  nix-fmt = ...;
+};
+```
+
+Update devShell commands from `cf:*` to `proxy:*`:
+
+```nix
+{
+  name = "proxy:test";
+  command = "cd proxy && npm test";
+}
+{
+  name = "proxy:dev";
+  command = "cd proxy && wrangler dev";
+}
+{
+  name = "proxy:deploy";
+  command = "cd proxy && wrangler deploy";
+}
+```
+
+Update infra/tasks/setup.yaml:
+
+```yaml
+tasks:
+  - name: Bridge dependencies
+    cmd: cd bridge && npm install
+  - name: Proxy dependencies
+    cmd: cd proxy && npm install
+```
+
+**Step 10: Update flake.lock**
+
+```bash
+nix flake update
+```
 
 ---
 
-## Task 7: Update CLAUDE.md
+## Task 9: Update CLAUDE.md
 
 **Files:**
 - Modify: `CLAUDE.md`
 
-**Step 1: Add infrastructure commands section**
+**Step 1: Add lint commands to Development Commands section**
 
-Add/update Commands section:
+Add after existing commands:
 
 ```markdown
-## Commands
+## Linting Commands
 
 ```bash
-# Development
-npm run dev          # Vite dev server
-npm run tauri dev    # Tauri dev mode
-
-# Build
-npm run build        # Production build
-npm run tauri build  # Tauri production build
-
-# Test
-npm run test         # Elm tests
-npm run test:rust    # Rust tests
-npx playwright test  # E2E tests
-
-# Lint
-npm run lint         # TypeScript lint
-npm run lint:elm     # Elm review
-npm run lint:rust    # Rust clippy
-
-# Format
-npm run format       # Format TS + Elm
-npm run format:rust  # Format Rust
-npm run format:nix   # Format Nix
-
-# All checks
-npm run check        # Run all linting and format checks
+# From project root (inside nix develop)
+cd view && elm-review           # Elm linting
+cd bridge && eslint src/        # TypeScript linting
+cd platform && cargo clippy     # Rust linting
 ```
 
 ## CI/CD
@@ -543,23 +1232,52 @@ npm run check        # Run all linting and format checks
 
 ---
 
-## Task 8: Commit and Mark Complete
+## Task 10: Verify Design Document Alignment
+
+**Goal:** Ensure main design document reflects infrastructure changes.
+
+**Files:**
+- Review/Update: `docs/plans/2025-12-13-elm-tauri-migration-design.md`
+
+**Step 1: Verify Stack section**
+
+Ensure these are documented:
+- Crane for Rust builds (caching)
+- Cachix for binary cache
+- GitHub Actions for CI/CD
+
+**Step 2: Verify Architecture section**
+
+Ensure `infra/` directory structure is reflected.
+
+**Step 3: Verify any new tooling**
+
+- elm-review
+- ESLint + Prettier (legacy settings)
+- Cachix
+
+**Step 4: Update if needed**
+
+If design doc is outdated, update it to match implementation.
+
+---
+
+## Task 11: Commit and Mark Complete
 
 **Step 1: Commit**
 
 ```bash
 git add -A
-git commit -m "feat: add infrastructure (linting, formatting, CI/CD)
+git commit -m "feat: add infrastructure (linting, CI/CD)
 
 - Add elm-review with unused/simplify rules
 - Add ESLint + Prettier for TypeScript
-- Add rustfmt + clippy for Rust
-- Add nixfmt for Nix
+- Add rustfmt.toml + .clippy.toml for Rust
 - Create CI workflow (lint, test, build)
 - Create Release workflow (multi-platform Tauri builds)
-- Add npm scripts for all checks
+- Update check tasks with new linting
 
-🤖 Generated with Claude Code"
+Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
 **Step 2: Mark phase complete**
@@ -568,24 +1286,36 @@ Edit `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
 
 Change line 15 from:
 ```
-| 3 | Infrastructure | [ ] | `03-infrastructure-plan.md` |
+| 3  | Infrastructure     | [ ]    | `03-infrastructure-plan.md`   |
 ```
 To:
 ```
-| 3 | Infrastructure | [x] | `03-infrastructure-plan.md` |
+| 3  | Infrastructure     | [x]    | `03-infrastructure-plan.md`   |
 ```
 
 ---
 
 ## Verification Checklist
 
-- [ ] `elm-format src/ --validate` passes
-- [ ] `elm-review` passes
-- [ ] `npm run lint` passes
-- [ ] `npm run format:check` passes
-- [ ] `cargo fmt --check` passes
-- [ ] `cargo clippy -- -D warnings` passes
-- [ ] `nixfmt --check flake.nix` passes
-- [ ] `npm run check` runs all checks
-- [ ] CI workflow file valid (check with `act` or push to test branch)
-- [ ] Release workflow file valid
+- [x] `nix flake check` passes (runs all checks: view, bridge, platform, proxy, nix-fmt)
+- [x] `run-parallel infra/tasks/format.yaml` formats all code
+- [x] Crane builds platform with cached dependencies
+- [x] Cachix configured locally (`cachix use scientific-assistant`)
+- [x] CI workflow uses Cachix for caching on all platforms (Linux, macOS ARM, Windows)
+- [x] Release workflow uses Cachix for caching on all platforms
+- [x] CI workflow file `.github/workflows/ci.yml` exists
+- [x] Release workflow file `.github/workflows/release.yml` exists
+- [x] flake.nix has `checks` output with view, bridge, platform, proxy, nix-fmt
+- [x] flake.nix uses crane input for Rust builds
+- [x] Infrastructure reorganized under `infra/` (elm-watch, run-parallel, tasks)
+- [x] cloudflare renamed to proxy with proxy:* commands
+- [x] Each layer has default.nix (view, bridge, platform, proxy)
+- [x] proxy/default.nix exports package (with tests) and wrangler tool
+- [x] Main design document updated (Phase 03 marked complete)
+- [x] CLAUDE.md updated with linting commands, CI/CD, Crane, proxy rename
+- [x] README.md updated with CI/CD, infrastructure structure, proxy rename
+- [x] .gitignore updated for proxy and infra paths
+
+---
+
+**Version**: 2.6 (Added Cachix, design doc verification)
