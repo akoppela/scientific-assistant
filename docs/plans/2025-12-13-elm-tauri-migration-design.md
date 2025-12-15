@@ -76,7 +76,7 @@ Mark `[x]` when phase complete. Each plan includes completion step that updates 
 | Proxy   | Cloudflare Worker          | Authenticated Gemini gateway   |
 | DevEnv  | Nix flakes + devshell      | Reproducible builds, all deps  |
 | Process | mprocs                     | Parallel dev processes         |
-| CI/CD   | GitHub Actions + Cachix    | Multi-platform builds, caching |
+| CI/CD   | GitHub Actions             | Multi-platform builds          |
 
 ## Tooling
 
@@ -120,9 +120,8 @@ Mark `[x]` when phase complete. Each plan includes completion step that updates 
 |-------------|-------------------------|
 | nixpkgs-fmt | Nix file formatting     |
 | Crane       | Rust dependency caching |
-| Cachix      | Binary cache (CI/CD)    |
 
-**Phase 03 Complete:** eslint, prettier, elm-review, Crane, Cachix, multi-platform CI/CD workflows added.
+**Phase 03 Complete:** eslint, prettier, elm-review, Crane, multi-platform CI/CD workflows added.
 
 **Note:** Additional tools (elm-program-test, elm-codegen, cargo-tarpaulin, cargo-audit, Playwright) will be added in later phases.
 

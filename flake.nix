@@ -76,7 +76,6 @@
 
           # Nix
           nixpkgs-fmt
-          cachix
 
           # Git
           gh

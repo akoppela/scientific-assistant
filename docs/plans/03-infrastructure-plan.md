@@ -4,7 +4,7 @@
 
 **Architecture:** Pre-commit via `format` command. CI runs format checks, linting, tests, and builds on push. Release workflow builds Tauri artifacts for all platforms.
 
-**Tech Stack:** elm-review, ESLint 9.x, Prettier 3.x, typescript-eslint, GitHub Actions, Crane, Cachix
+**Tech Stack:** elm-review, ESLint 9.x, Prettier 3.x, typescript-eslint, GitHub Actions, Crane
 
 **Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
@@ -577,7 +577,7 @@ platform = craneLib.buildPackage {
 **Caching benefit:**
 - `platformCargoArtifacts`: Rebuilds only when `Cargo.lock` changes
 - `platform`: Rebuilds only when `src/` changes, uses cached deps
-- With Cachix: deps download instantly in CI after first build
+- Significantly faster CI builds after initial dependency compilation
 
 **Step 4: Update flake.lock**
 
@@ -587,48 +587,9 @@ nix flake update
 
 ---
 
-## Task 5: Setup Cachix
+## Task 5: ~~Setup Cachix~~ (Removed - too expensive for pet project)
 
-**Goal:** Configure Cachix for local development and CI/CD. Cache Nix builds to avoid rebuilding.
-
-**Files:**
-- Modify: `flake.nix` (add cachix to devShell)
-- Create: `.github/workflows/ci.yml` (with Cachix)
-- Create: `.github/workflows/release.yml` (with Cachix)
-
-**Step 1: One-time manual setup**
-
-```bash
-# Create Cachix account at https://cachix.org
-# Create a binary cache named "scientific-assistant"
-
-# Login locally
-cachix authtoken <your-token>
-
-# Use the cache
-cachix use scientific-assistant
-```
-
-**Step 2: Add cachix to devShell**
-
-In `flake.nix`, add to nixDevTools:
-
-```nix
-nixDevTools = with pkgs; [ nixpkgs-fmt cachix ];
-```
-
-**Step 3: Add GitHub secret**
-
-Repository → Settings → Secrets → Actions:
-- Name: `CACHIX_AUTH_TOKEN`
-- Value: Your Cachix auth token
-
-**Step 4: Local usage**
-
-```bash
-# Push local builds to cache (optional, CI does this automatically)
-nix build .#view | cachix push scientific-assistant
-```
+**Note:** Cachix support removed to reduce costs. CI builds from scratch each time. Crane still provides Rust dependency caching within each build.
 
 ---
 
@@ -654,7 +615,7 @@ checks = {
 
 **Step 2: Create CI workflow**
 
-Leverages Nix + Cachix for fast cached builds on all platforms:
+Leverages Nix for reproducible builds on all platforms:
 
 ```yaml
 name: CI
@@ -688,22 +649,14 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: scientific-assistant
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-
       - name: Run all checks
         run: nix flake check
 ```
 
 Note:
 - Runs on all target platforms: Linux x86_64, macOS ARM, Windows x86_64
-- Cachix downloads cached packages before build
-- Cachix pushes newly built packages after build
-- `nix flake check` runs all checks: view, bridge, platform, nix-fmt
-- Subsequent runs are fast (deps already cached)
+- `nix flake check` runs all checks: view, bridge, platform, proxy, nix-fmt
+- Crane provides Rust dependency caching within each build
 - Platform-specific issues caught early in CI
 
 ---
@@ -747,12 +700,6 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: scientific-assistant
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-
       - name: Build platform
         run: nix build .#platform
 
@@ -784,8 +731,8 @@ jobs:
 
 Note:
 - Builds on all target platforms: Linux x86_64, macOS ARM (Apple Silicon), Windows x86_64
-- Cachix provides cached deps across all platforms
 - Nix handles cross-platform builds consistently
+- Crane caches Rust dependencies within each build
 - Artifacts: .deb, .rpm (Linux), .dmg, .app (macOS), .msi, .exe (Windows)
 - Draft releases allow manual review before publishing
 
@@ -1300,20 +1247,20 @@ To:
 - [x] `nix flake check` passes (runs all checks: view, bridge, platform, proxy, nix-fmt)
 - [x] `run-parallel infra/tasks/format.yaml` formats all code
 - [x] Crane builds platform with cached dependencies
-- [x] Cachix configured locally (`cachix use scientific-assistant`)
-- [x] CI workflow uses Cachix for caching on all platforms (Linux, macOS ARM, Windows)
-- [x] Release workflow uses Cachix for caching on all platforms
+- [x] CI workflow runs on all platforms (Linux, macOS ARM, Windows)
+- [x] Release workflow builds for all platforms
 - [x] CI workflow file `.github/workflows/ci.yml` exists
 - [x] Release workflow file `.github/workflows/release.yml` exists
 - [x] flake.nix has `checks` output with view, bridge, platform, proxy, nix-fmt
-- [x] flake.nix uses crane input for Rust builds
+- [x] flake.nix uses Crane for Rust builds
 - [x] Infrastructure reorganized under `infra/` (elm-watch, run-parallel, tasks)
 - [x] cloudflare renamed to proxy with proxy:* commands
 - [x] Each layer has default.nix (view, bridge, platform, proxy)
 - [x] proxy/default.nix exports package (with tests) and wrangler tool
+- [x] Package groups consolidated into logical build/runtime/dev categories
 - [x] Main design document updated (Phase 03 marked complete)
-- [x] CLAUDE.md updated with linting commands, CI/CD, Crane, proxy rename
-- [x] README.md updated with CI/CD, infrastructure structure, proxy rename
+- [x] CLAUDE.md updated with linting, CI/CD, Crane, modular structure, proxy rename
+- [x] README.md updated with linting, CI/CD, modular structure, proxy rename
 - [x] .gitignore updated for proxy and infra paths
 
 ---

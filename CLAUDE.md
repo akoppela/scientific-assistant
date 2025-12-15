@@ -188,13 +188,8 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
 ## CI/CD
 
 **GitHub Actions workflows:**
-- `.github/workflows/ci.yml` - Runs on push/PR, executes `nix flake check`
+- `.github/workflows/ci.yml` - Runs on push/PR, executes `nix flake check` on all platforms
 - `.github/workflows/release.yml` - Runs on version tags, builds for all platforms
-
-**Binary cache:**
-- Cachix cache: `scientific-assistant`
-- Setup: `cachix use scientific-assistant`
-- Push access requires `CACHIX_AUTH_TOKEN` secret in GitHub
 
 **Release process:**
 1. Tag version: `git tag v0.1.0 && git push --tags`
