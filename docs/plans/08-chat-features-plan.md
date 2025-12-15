@@ -13,10 +13,10 @@
 ## Before Execution
 
 1. **Invoke brainstorming skill** — Review this plan and existing chat features
-2. **Analyze** — Check `legacy/src/state/features/files.ts` for attachment handling
-3. **Analyze** — Check `legacy/src/state/features/gemini.ts` for model types
-4. **Analyze** — Check `legacy/src/state/features/searchGrounding.ts` for toggle logic
-5. **Analyze** — Check `legacy/src/components/InputArea.tsx` for UI patterns
+2. **Analyze** — Check `../legacy/src/state/features/files.ts` for attachment handling
+3. **Analyze** — Check `../legacy/src/state/features/gemini.ts` for model types
+4. **Analyze** — Check `../legacy/src/state/features/searchGrounding.ts` for toggle logic
+5. **Analyze** — Check `../legacy/src/components/InputArea.tsx` for UI patterns
 6. **Confirm** — User confirms plan accuracy before proceeding
 7. **Proceed** — Use executing-plans + test-driven-development skills
 

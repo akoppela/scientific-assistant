@@ -13,8 +13,8 @@
 ## Before Execution
 
 1. **Invoke brainstorming skill** — Review this plan and existing tutorial implementation
-2. **Analyze** — Check `legacy/src/state/features/tutorial.ts` for tutorial state machine
-3. **Analyze** — Check `legacy/src/components/Tutorial.tsx` for overlay UI
+2. **Analyze** — Check `../legacy/src/state/features/tutorial.ts` for tutorial state machine
+3. **Analyze** — Check `../legacy/src/components/Tutorial.tsx` for overlay UI
 4. **Analyze** — Review demo messages and step content
 5. **Confirm** — User confirms plan accuracy and step content
 6. **Proceed** — Use executing-plans + test-driven-development skills

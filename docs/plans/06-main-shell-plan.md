@@ -13,8 +13,8 @@
 ## Before Execution
 
 1. **Invoke brainstorming skill** — Review this plan and existing shell implementation
-2. **Analyze** — Check `legacy/src/components/Header.tsx` for header structure
-3. **Analyze** — Check `legacy/src/components/InputArea.tsx` for input patterns
+2. **Analyze** — Check `../legacy/src/components/Header.tsx` for header structure
+3. **Analyze** — Check `../legacy/src/components/InputArea.tsx` for input patterns
 4. **Confirm** — User confirms plan accuracy before proceeding
 5. **Proceed** — Use executing-plans + test-driven-development skills
 

@@ -13,7 +13,7 @@
 ## Before Execution
 
 1. **Invoke brainstorming skill** — Review this plan and existing CI/tooling setup
-2. **Analyze** — Check `legacy/package.json` for existing scripts and tooling patterns
+2. **Analyze** — Check `../legacy/package.json` for existing scripts and tooling patterns
 3. **Confirm** — User confirms plan accuracy before proceeding
 4. **Proceed** — Use executing-plans + test-driven-development skills
 

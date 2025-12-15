@@ -13,10 +13,10 @@
 ## Before Execution
 
 1. **Invoke brainstorming skill** — Review this plan and existing message implementation
-2. **Analyze** — Check `legacy/src/components/MessageList.tsx` for message display
-3. **Analyze** — Check `legacy/src/state/features/messages.ts` for message types
-4. **Analyze** — Check `legacy/src/state/features/gemini.ts` for API integration
-5. **Analyze** — Check `legacy/src/effects.ts` for Gemini API call patterns
+2. **Analyze** — Check `../legacy/src/components/MessageList.tsx` for message display
+3. **Analyze** — Check `../legacy/src/state/features/messages.ts` for message types
+4. **Analyze** — Check `../legacy/src/state/features/gemini.ts` for API integration
+5. **Analyze** — Check `../legacy/src/effects.ts` for Gemini API call patterns
 6. **Confirm** — User confirms plan accuracy before proceeding
 7. **Proceed** — Use executing-plans + test-driven-development skills
 

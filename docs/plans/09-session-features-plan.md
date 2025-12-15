@@ -13,8 +13,8 @@
 ## Before Execution
 
 1. **Invoke brainstorming skill** — Review this plan and existing session implementation
-2. **Analyze** — Check `legacy/src/state/features/session.ts` for export/import logic
-3. **Analyze** — Check `legacy/src/components/Header.tsx` for session action buttons
+2. **Analyze** — Check `../legacy/src/state/features/session.ts` for export/import logic
+3. **Analyze** — Check `../legacy/src/components/Header.tsx` for session action buttons
 4. **Analyze** — Review JSON structure for session data
 5. **Confirm** — User confirms plan accuracy before proceeding
 6. **Proceed** — Use executing-plans + test-driven-development skills

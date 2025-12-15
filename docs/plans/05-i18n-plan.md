@@ -13,8 +13,8 @@
 ## Before Execution
 
 1. **Invoke brainstorming skill** — Review this plan and existing i18n implementation
-2. **Analyze** — Check `legacy/src/i18n/` for all translation keys and patterns
-3. **Analyze** — Review `legacy/src/i18n/translations/ru.ts` and `en.ts` for all strings
+2. **Analyze** — Check `../legacy/src/i18n/` for all translation keys and patterns
+3. **Analyze** — Review `../legacy/src/i18n/translations/ru.ts` and `en.ts` for all strings
 4. **Confirm** — User confirms plan accuracy and all keys are captured
 5. **Proceed** — Use executing-plans + test-driven-development skills
 

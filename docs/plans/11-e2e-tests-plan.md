@@ -13,7 +13,7 @@
 ## Before Execution
 
 1. **Invoke brainstorming skill** — Review this plan and existing E2E tests
-2. **Analyze** — Check `legacy/e2e/` for existing test patterns and helpers
+2. **Analyze** — Check `../legacy/e2e/` for existing test patterns and helpers
 3. **Analyze** — Review all `data-testid` attributes in Elm components
 4. **Confirm** — User confirms test coverage and scenarios
 5. **Proceed** — Use executing-plans + test-driven-development skills

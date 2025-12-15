@@ -12,10 +12,10 @@
 
 ## Before Execution
 
-1. **Invoke brainstorming skill** — Review existing UI design in `legacy/src/components/`
+1. **Invoke brainstorming skill** — Review existing UI design in `../legacy/src/components/`
 2. **Invoke frontend-design skill** — Create distinctive, production-grade UI design
 3. **Invoke theme-factory skill** — Generate custom theme with colors/fonts
-4. **Analyze** — Check `legacy/src/` for existing Tailwind/DaisyUI patterns
+4. **Analyze** — Check `../legacy/src/` for existing Tailwind/DaisyUI patterns
 5. **Confirm** — User confirms design direction before proceeding
 6. **Proceed** — Use executing-plans + test-driven-development skills
 
