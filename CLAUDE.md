@@ -193,9 +193,11 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
 
 **Release process:**
 1. Tag version: `git tag v0.1.0 && git push --tags`
-2. GitHub Actions builds for Linux (x86_64), macOS (Apple Silicon), Windows (x86_64)
+2. GitHub Actions builds for Linux (x86_64) and macOS (Apple Silicon)
 3. Artifacts uploaded as draft release
 4. Review and publish release manually
+
+**Note:** Windows builds require manual setup (Nix doesn't support Windows natively).
 
 ## Build Architecture
 
@@ -211,7 +213,7 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
 - bridge: Vite bundles main.ts + elm.js → dist/
 - platform: Crane builds Rust deps (cached) → cargo tauri build → bundles
   - Crane separates dependency builds for better caching
-  - Outputs: .deb, .rpm (Linux), .msi, .exe (Windows), .dmg, .app (macOS)
+  - Outputs: .deb, .rpm (Linux), .dmg, .app (macOS)
 
 **elm-watch targets:**
 - "dev": outputs to ../bridge/build/elm.js (for development)
