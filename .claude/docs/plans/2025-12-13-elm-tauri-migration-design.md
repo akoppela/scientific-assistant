@@ -11,7 +11,7 @@ Replace Solid.js with Elm to eliminate runtime exceptions and timing issues. Add
 | #  | Phase              | Status | Plan Document                 |
 |----|--------------------|--------|-------------------------------|
 | 1  | Bootstrap          | [x]    | `01-bootstrap-plan.md`        |
-| 2  | Cloudflare Proxy   | [ ]    | `02-cloudflare-proxy-plan.md` |
+| 2  | Cloudflare Proxy   | [x]    | `02-cloudflare-proxy-plan.md` |
 | 3  | Infrastructure     | [ ]    | `03-infrastructure-plan.md`   |
 | 4  | Re-design          | [ ]    | `04-redesign-plan.md`         |
 | 5  | i18n               | [ ]    | `05-i18n-plan.md`             |

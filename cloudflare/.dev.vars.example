@@ -1,0 +1,5 @@
+# Copy to .dev.vars and fill in values
+# Used by `wrangler dev` for local development
+
+GEMINI_API_KEY=your-gemini-api-key-from-google-ai-studio
+PROXY_API_KEY=your-random-string-for-client-auth

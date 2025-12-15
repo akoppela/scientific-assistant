@@ -1,0 +1,9 @@
+name = "gemini-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[vars]
+# Non-secret config (if any)
+
+# Secrets are set via: wrangler secret put GEMINI_API_KEY
+# and: wrangler secret put PROXY_API_KEY

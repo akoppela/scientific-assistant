@@ -89,6 +89,9 @@
         # Git/GitHub CLI (dev only)
         gitDevTools = with pkgs; [ gh ];
 
+        # Cloudflare Workers (dev only)
+        cloudflareDevTools = with pkgs; [ wrangler ];
+
         # AI assistance (dev only)
         llmDevTools = with pkgs; [ claude-code ];
 
@@ -208,7 +211,7 @@
             ++ rustDevTools  # language.rust provides rustc, cargo, clippy, rustfmt
             ++ tauriBuildTools  # language.c provides tauriRuntimeLibs via libraries/includes
             ++ nodeTools
-            ++ processRunners ++ styleDevTools ++ nixDevTools ++ gitDevTools ++ llmDevTools;
+            ++ processRunners ++ styleDevTools ++ nixDevTools ++ gitDevTools ++ cloudflareDevTools ++ llmDevTools;
 
           env = [
             {
@@ -226,8 +229,8 @@
             {
               name = "setup";
               category = "development";
-              help = "Install bridge dependencies";
-              command = "cd bridge && npm install";
+              help = "Install all npm dependencies (bridge + cloudflare)";
+              command = "run-parallel tasks/setup.yaml";
             }
             {
               name = "dev";
@@ -264,6 +267,24 @@
               category = "maintenance";
               help = "Remove build artifacts";
               command = "rm -rf result view/dist view/elm-stuff bridge/build bridge/dist platform/target";
+            }
+            {
+              name = "cf:test";
+              category = "cloudflare";
+              help = "Run Cloudflare Worker tests";
+              command = "cd cloudflare && npm test";
+            }
+            {
+              name = "cf:dev";
+              category = "cloudflare";
+              help = "Start Cloudflare Worker dev server";
+              command = "cd cloudflare && wrangler dev";
+            }
+            {
+              name = "cf:deploy";
+              category = "cloudflare";
+              help = "Deploy Cloudflare Worker";
+              command = "cd cloudflare && wrangler deploy";
             }
           ];
         };

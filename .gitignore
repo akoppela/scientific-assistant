@@ -15,6 +15,10 @@ bridge/dist/
 platform/target/
 platform/gen/
 
+# Cloudflare layer
+cloudflare/node_modules/
+cloudflare/.dev.vars
+
 # elm-watch package
 elm-watch/node_modules/
 

@@ -45,6 +45,10 @@ scientific-assistant/
 ├── elm-watch/        # elm-watch packaged for Nix
 │   ├── package.json  # elm-watch dependency
 │   └── flake.nix     # buildNpmPackage + makeWrapper
+├── cloudflare/       # Cloudflare Worker (Gemini proxy)
+│   ├── src/          # Worker source
+│   │   └── __tests__/  # vitest tests
+│   └── .dev.vars     # Local secrets (gitignored)
 ├── .claude/docs/     # Design documents
 └── flake.nix         # Nix configuration
 ```
@@ -123,12 +127,46 @@ build:bridge    # Build bridge layer (TypeScript integration)
 build:platform  # Build platform layer (Tauri + Rust)
 format          # Format all code
 clean           # Remove build artifacts
+cf:test         # Run Cloudflare Worker tests
+cf:dev          # Start Cloudflare Worker dev server
+cf:deploy       # Deploy Cloudflare Worker
+```
+
+## Cloudflare Proxy
+
+Worker at `cloudflare/` proxies Gemini API calls with authentication.
+
+**Local development:**
+1. Run `setup` (installs dependencies)
+2. Copy `cloudflare/.dev.vars.example` to `cloudflare/.dev.vars`
+3. Fill in `GEMINI_API_KEY` and `PROXY_API_KEY`
+4. Run `cf:dev`
+
+**Production deployment (once):**
+```bash
+wrangler login
+cd cloudflare
+wrangler secret put GEMINI_API_KEY
+wrangler secret put PROXY_API_KEY
+cf:deploy
+```
+
+**Usage from client:**
+```typescript
+fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${PROXY_API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ contents: [...] })
+});
 ```
 
 ## Build Architecture
 
 **Development workflow:**
-1. Run `setup` once to install bridge/node_modules (vite, vitest, typescript)
+1. Run `setup` once to install npm dependencies (bridge + cloudflare)
 2. Run `dev` to start:
    - elm-watch hot dev (view/ → bridge/build/elm.js)
    - vite dev server (bridge/ with HMR)

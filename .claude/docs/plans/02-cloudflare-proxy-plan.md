@@ -4,7 +4,7 @@
 
 **Architecture:** Client sends request with `Authorization` header containing `PROXY_API_KEY`. Worker validates key, strips it, adds `GEMINI_API_KEY`, forwards to Gemini. CORS headers added for browser access.
 
-**Tech Stack:** Cloudflare Workers, Wrangler CLI, TypeScript
+**Tech Stack:** Cloudflare Workers, Wrangler CLI (via Nix), TypeScript
 
 **Reference:** `.claude/docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
@@ -12,8 +12,8 @@
 
 ## Before Execution
 
-1. **Invoke brainstorming skill** — Review this plan and existing proxy at `legacy/` (Cloudflare Worker)
-2. **Analyze** — Check `legacy/src/effects.ts` for current API usage patterns
+1. **Invoke brainstorming skill** — Review this plan and existing proxy at `../legacy/` (Cloudflare Worker)
+2. **Analyze** — Check `../legacy/src/effects.ts` for current API usage patterns
 3. **Confirm** — User confirms plan accuracy before proceeding
 4. **Proceed** — Use executing-plans + test-driven-development skills
 
@@ -22,36 +22,65 @@
 ## Prerequisites
 
 - Cloudflare account with Workers enabled
-- Wrangler CLI installed (via npm)
+- Nix devShell with wrangler (added in Task 1)
 - `GEMINI_API_KEY` from Google AI Studio
 - `PROXY_API_KEY` (generate random string for client auth)
 
 ---
 
-## Task 1: Initialize Cloudflare Worker Project
+## Task 1: Add Cloudflare Tooling to Nix
 
 **Files:**
-- Create: `cloudflare/package.json`
+- Modify: `flake.nix`
 - Create: `cloudflare/wrangler.toml`
+- Create: `cloudflare/package.json` (for wrangler config, not npm install)
 - Create: `cloudflare/tsconfig.json`
 
-**Step 1: Create package.json**
+**Step 1: Add wrangler to flake.nix devShell**
 
-```json
+Add to `flake.nix` after `gitDevTools`:
+
+```nix
+# Cloudflare Workers (dev only)
+cloudflareDevTools = with pkgs; [ wrangler ];
+```
+
+Add `cloudflareDevTools` to `packages` in devShell:
+
+```nix
+packages = elmBuildTools ++ elmDevTools ++ elmWatchTool
+  ++ rustDevTools
+  ++ tauriBuildTools
+  ++ nodeTools
+  ++ processRunners ++ styleDevTools ++ nixDevTools ++ gitDevTools ++ cloudflareDevTools ++ llmDevTools;
+```
+
+Add cloudflare commands to devShell:
+
+```nix
 {
-  "name": "gemini-proxy",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "tail": "wrangler tail"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20241127.0",
-    "typescript": "^5.7.0",
-    "wrangler": "^3.93.0"
-  }
+  name = "cf:dev";
+  category = "cloudflare";
+  help = "Start Cloudflare Worker dev server";
+  command = "cd cloudflare && wrangler dev";
+}
+{
+  name = "cf:deploy";
+  category = "cloudflare";
+  help = "Deploy Cloudflare Worker";
+  command = "cd cloudflare && wrangler deploy";
+}
+{
+  name = "cf:test";
+  category = "cloudflare";
+  help = "Run Cloudflare Worker tests";
+  command = "cd cloudflare && npm test";
+}
+{
+  name = "cf:setup";
+  category = "cloudflare";
+  help = "Install cloudflare test dependencies";
+  command = "cd cloudflare && npm install";
 }
 ```
 
@@ -69,7 +98,30 @@ compatibility_date = "2024-12-01"
 # and: wrangler secret put PROXY_API_KEY
 ```
 
-**Step 3: Create tsconfig.json**
+**Step 3: Create package.json**
+
+Minimal package.json for wrangler config and test dependencies:
+
+```json
+{
+  "name": "gemini-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}
+```
+
+Note: wrangler comes from Nix, not npm.
+
+**Step 4: Create tsconfig.json**
 
 ```json
 {
@@ -88,15 +140,21 @@ compatibility_date = "2024-12-01"
 }
 ```
 
-**Step 4: Install dependencies**
+**Step 5: Verify setup**
 
 ```bash
-cd cloudflare
-npm install
-cd ..
+# Exit and re-enter nix shell to pick up changes
+exit
+nix develop
+
+# Verify wrangler available
+wrangler --version
+
+# Install test dependencies
+cf:setup
 ```
 
-Expected: Dependencies installed successfully.
+Expected: wrangler available from Nix, test deps installed.
 
 ---
 
@@ -184,37 +242,10 @@ describe("Gemini Proxy", () => {
 });
 ```
 
-**Step 2: Add vitest to package.json**
-
-Update `cloudflare/package.json`:
-
-```json
-{
-  "name": "gemini-proxy",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "tail": "wrangler tail",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20241127.0",
-    "typescript": "^5.7.0",
-    "vitest": "^2.1.0",
-    "wrangler": "^3.93.0"
-  }
-}
-```
-
-**Step 3: Verify test fails**
+**Step 2: Verify test fails**
 
 ```bash
-cd cloudflare
-npm install
-npm test
+cf:test
 ```
 
 Expected: FAIL with "Cannot find module './index'" or similar.
@@ -285,7 +316,7 @@ export async function handleRequest(
 
   // Get model from query params
   const url = new URL(request.url);
-  const model = url.searchParams.get("model") || "gemini-2.0-flash";
+  const model = url.searchParams.get("model") || "gemini-2.5-flash";
 
   // Forward to Gemini
   const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
@@ -324,8 +355,7 @@ export default {
 **Step 2: Verify tests pass**
 
 ```bash
-cd cloudflare
-npm test
+cf:test
 ```
 
 Expected: All tests pass.
@@ -366,7 +396,7 @@ describe("Gemini Proxy - Integration", () => {
     };
 
     try {
-      const request = new Request("https://proxy.example.com/?model=gemini-2.0-flash", {
+      const request = new Request("https://proxy.example.com/?model=gemini-2.5-flash", {
         method: "POST",
         headers: {
           Authorization: "Bearer test-proxy-key",
@@ -423,8 +453,7 @@ describe("Gemini Proxy - Integration", () => {
 **Step 2: Verify all tests pass**
 
 ```bash
-cd cloudflare
-npm test
+cf:test
 ```
 
 Expected: All tests pass.
@@ -436,8 +465,7 @@ Expected: All tests pass.
 **Step 1: Login to Cloudflare**
 
 ```bash
-cd cloudflare
-npx wrangler login
+wrangler login
 ```
 
 Expected: Browser opens for authentication.
@@ -445,10 +473,11 @@ Expected: Browser opens for authentication.
 **Step 2: Set secrets**
 
 ```bash
-npx wrangler secret put GEMINI_API_KEY
+cd cloudflare
+wrangler secret put GEMINI_API_KEY
 # Enter your Gemini API key when prompted
 
-npx wrangler secret put PROXY_API_KEY
+wrangler secret put PROXY_API_KEY
 # Enter a secure random string (e.g., generate with: openssl rand -hex 32)
 ```
 
@@ -457,7 +486,7 @@ Expected: Secrets saved successfully.
 **Step 3: Deploy**
 
 ```bash
-npx wrangler deploy
+cf:deploy
 ```
 
 Expected: Worker deployed, URL printed (e.g., `https://gemini-proxy.<your-subdomain>.workers.dev`).
@@ -471,28 +500,31 @@ Expected: Worker deployed, URL printed (e.g., `https://gemini-proxy.<your-subdom
 
 **Step 1: Add proxy section**
 
-Add after "## Commands" section:
+Add after "## Development Commands" section:
 
 ```markdown
 ## Cloudflare Proxy
 
 Worker at `cloudflare/` proxies Gemini API calls with authentication.
 
-**Deployment:**
+**Commands (from devShell):**
 ```bash
-cd cloudflare
-npx wrangler deploy
+cf:setup    # Install test dependencies (once)
+cf:test     # Run tests
+cf:dev      # Start local dev server
+cf:deploy   # Deploy to Cloudflare
 ```
 
-**Secrets (set once):**
+**Secrets (set once via wrangler):**
 ```bash
-npx wrangler secret put GEMINI_API_KEY  # From Google AI Studio
-npx wrangler secret put PROXY_API_KEY   # Random string for client auth
+cd cloudflare
+wrangler secret put GEMINI_API_KEY  # From Google AI Studio
+wrangler secret put PROXY_API_KEY   # Random string for client auth
 ```
 
 **Usage:**
 ```typescript
-const response = await fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.0-flash", {
+const response = await fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
   method: "POST",
   headers: {
     "Authorization": `Bearer ${PROXY_API_KEY}`,
@@ -500,11 +532,6 @@ const response = await fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini
   },
   body: JSON.stringify({ contents: [...] })
 });
-```
-
-**Testing:**
-```bash
-cd cloudflare && npm test
 ```
 ```
 
@@ -516,9 +543,11 @@ cd cloudflare && npm test
 
 ```bash
 git add cloudflare/
+git add flake.nix
 git add CLAUDE.md
 git commit -m "feat: add authenticated Cloudflare proxy for Gemini API
 
+- Add wrangler to Nix devShell
 - Validate PROXY_API_KEY before forwarding requests
 - Strip client auth, add GEMINI_API_KEY to backend
 - Handle CORS preflight
@@ -545,8 +574,9 @@ To:
 
 ## Verification Checklist
 
-- [ ] `cd cloudflare && npm test` passes all tests
-- [ ] `npx wrangler deploy` succeeds
+- [ ] `wrangler --version` works from devShell
+- [ ] `cf:test` passes all tests
+- [ ] `cf:deploy` succeeds
 - [ ] Secrets configured via `wrangler secret put`
 - [ ] Manual test: curl with valid key returns 200
 - [ ] Manual test: curl without key returns 401
@@ -570,7 +600,7 @@ curl -X POST https://gemini-proxy.xxx.workers.dev/ \
   -w "\nStatus: %{http_code}\n"
 
 # Test valid request (should return 200)
-curl -X POST "https://gemini-proxy.xxx.workers.dev/?model=gemini-2.0-flash" \
+curl -X POST "https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash" \
   -H "Authorization: Bearer YOUR_PROXY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"contents":[{"role":"user","parts":[{"text":"Say hello"}]}]}' \
