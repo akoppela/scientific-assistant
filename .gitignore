@@ -22,6 +22,9 @@ elm-watch/node_modules/
 .direnv/
 .env
 
+# Process logs
+logs/
+
 # IDE
 .idea/
 *.swp
