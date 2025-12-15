@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  build-nix:
+  build:
     strategy:
       matrix:
         include:
@@ -35,51 +35,8 @@ jobs:
           name: bundles-${{ matrix.system }}
           path: result/bundle/
 
-  build-windows:
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install dependencies
-        run: |
-          cd bridge && npm install
-          cd ../proxy && npm install
-
-      - name: Build view
-        run: |
-          npm install -g elm elm-watch
-          cd view && elm-watch make --optimize build
-
-      - name: Build bridge
-        run: |
-          cd bridge
-          mkdir -p build
-          copy ..\view\dist\elm.js build\
-          npm run build
-
-      - name: Build platform
-        run: |
-          cd platform
-          cargo install tauri-cli
-          cargo tauri build
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: bundles-x86_64-windows
-          path: platform/target/release/bundle/
-
   release:
-    needs: [build-nix, build-windows]
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write

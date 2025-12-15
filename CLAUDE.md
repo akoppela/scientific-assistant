@@ -197,7 +197,7 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
 3. Artifacts uploaded as draft release
 4. Review and publish release manually
 
-**Note:** Windows builds require manual setup (Nix doesn't support Windows natively).
+**Note:** Windows builds via cross-compilation to be added in future phase.
 
 ## Build Architecture
 

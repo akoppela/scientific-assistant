@@ -103,9 +103,9 @@ Elm (UI) ←→ Ports ←→ TypeScript ←→ Tauri (Rust)
 ## CI/CD
 
 - **CI**: Runs on push/PR to main - linting, tests, builds (Linux, macOS via Nix)
-- **Release**: Tag `v*` triggers multi-platform builds (Nix for Linux/macOS, native for Windows)
-- **Platforms**: Linux x86_64, macOS ARM, Windows x86_64
-- **Outputs**: `.deb`, `.rpm` (Linux), `.dmg`, `.app` (macOS), `.msi`, `.exe` (Windows)
+- **Release**: Tag `v*` triggers builds for Linux and macOS
+- **Platforms**: Linux x86_64, macOS ARM (Windows cross-compilation to be added)
+- **Outputs**: `.deb`, `.rpm` (Linux), `.dmg`, `.app` (macOS)
 
 ---
 
