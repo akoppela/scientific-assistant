@@ -50,11 +50,18 @@
         runParallelTool = [ run-parallel ];
         tsLintTools = with pkgs; [ eslint prettier ];
         rustBuildTools = with pkgs; [ clippy rustfmt ];
-        tauriBuildTools = with pkgs; [ pkg-config cargo-tauri gobject-introspection ];
+        tauriBuildTools = with pkgs; if pkgs.stdenv.isLinux then
+          [ pkg-config cargo-tauri gobject-introspection ]
+        else
+          [ cargo-tauri ];
 
         # Runtime libraries (used in buildInputs for platform builds)
-        tauriRuntimeLibs = with pkgs; [ at-spi2-atk atkmm cairo glib gtk3 harfbuzz librsvg libsoup_3 pango webkitgtk_4_1 openssl zlib stdenv.cc.cc.lib ];
-        tauriDevPackages = with pkgs; [ gdk-pixbuf atk ]; # For pkg-config in dev, not linked
+        # Linux-specific GTK/WebKit libraries (macOS uses system frameworks)
+        tauriRuntimeLibs = with pkgs; if pkgs.stdenv.isLinux then
+          [ at-spi2-atk atkmm cairo glib gtk3 harfbuzz librsvg libsoup_3 pango webkitgtk_4_1 openssl zlib stdenv.cc.cc.lib ]
+        else
+          [ openssl zlib stdenv.cc.cc.lib ];
+        tauriDevPackages = with pkgs; if pkgs.stdenv.isLinux then [ gdk-pixbuf atk ] else [ ];
 
         # Dev shell tools (development only, not used in builds)
         devTools = with pkgs; [
