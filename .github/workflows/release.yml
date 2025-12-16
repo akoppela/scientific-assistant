@@ -45,10 +45,16 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
+      - name: List artifacts
+        run: |
+          find bundles-* -type f
+          ls -lah bundles-*/
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            bundles-*/**/*
+            bundles-x86_64-linux/deb/**/*.deb
+            bundles-x86_64-linux/rpm/**/*.rpm
           draft: true
           generate_release_notes: true
