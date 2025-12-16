@@ -47,14 +47,14 @@ jobs:
 
       - name: List artifacts
         run: |
-          find bundles-* -type f
-          ls -lah bundles-*/
+          ls -lah
+          find . -name "*.deb" -o -name "*.rpm"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            bundles-x86_64-linux/deb/**/*.deb
-            bundles-x86_64-linux/rpm/**/*.rpm
+            **/*.deb
+            **/*.rpm
           draft: true
           generate_release_notes: true
