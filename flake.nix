@@ -59,9 +59,9 @@
         # Linux-specific GTK/WebKit libraries (macOS uses system frameworks)
         # Note: gdk-pixbuf runtime comes via librsvg dependency
         tauriRuntimeLibs = with pkgs; if pkgs.stdenv.isLinux then
-          [ at-spi2-atk atkmm cairo glib gtk3 harfbuzz librsvg libsoup_3 pango webkitgtk_4_1 openssl zlib stdenv.cc.cc.lib ]
+          [ at-spi2-atk atkmm cairo glib gtk3 harfbuzz librsvg libsoup_3 pango webkitgtk_4_1 openssl zlib ]
         else
-          [ openssl zlib stdenv.cc.cc.lib ];
+          [ openssl zlib ];
 
         # Dev packages for pkg-config (.pc files needed during compilation)
         tauriDevPackages = with pkgs; if pkgs.stdenv.isLinux then
