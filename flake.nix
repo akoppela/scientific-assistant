@@ -57,11 +57,16 @@
 
         # Runtime libraries (used in buildInputs for platform builds)
         # Linux-specific GTK/WebKit libraries (macOS uses system frameworks)
+        # Note: gdk-pixbuf runtime comes via librsvg dependency
         tauriRuntimeLibs = with pkgs; if pkgs.stdenv.isLinux then
           [ at-spi2-atk atkmm cairo glib gtk3 harfbuzz librsvg libsoup_3 pango webkitgtk_4_1 openssl zlib stdenv.cc.cc.lib ]
         else
           [ openssl zlib stdenv.cc.cc.lib ];
-        tauriDevPackages = with pkgs; if pkgs.stdenv.isLinux then [ gdk-pixbuf ] else [ ];
+
+        # Dev packages for pkg-config (.pc files needed during compilation)
+        tauriDevPackages = with pkgs; if pkgs.stdenv.isLinux then
+          [ gdk-pixbuf.dev ]
+        else [ ];
 
         # Dev shell tools (development only, not used in builds)
         devTools = with pkgs; [
@@ -131,7 +136,7 @@
           language.rust.enableDefaultToolchain = true;
 
           language.c = {
-            libraries = tauriRuntimeLibs; # Don't include tauriDevPackages (causes gdk-pixbuf conflict)
+            libraries = tauriRuntimeLibs;
             includes = tauriRuntimeLibs ++ tauriDevPackages;
           };
 
