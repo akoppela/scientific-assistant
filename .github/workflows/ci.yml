@@ -13,9 +13,6 @@ jobs:
       image: nixos/nix:latest
 
     steps:
-      - name: Install git
-        run: nix-env -iA nixpkgs.git
-
       - name: Checkout code
         run: |
           git clone https://github.com/$GITHUB_REPOSITORY .
@@ -23,6 +20,11 @@ jobs:
 
       - name: Enable flakes
         run: echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+
+      - name: Setup Cachix
+        run: |
+          nix-env -iA nixpkgs.cachix
+          cachix use scientific-assistant
 
       - name: Run all checks
         run: nix flake check
