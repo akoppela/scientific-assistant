@@ -8,34 +8,30 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: nixos/nix:latest
 
     steps:
-      - name: Install git
-        run: nix-env -iA nixpkgs.git
+      - uses: actions/checkout@v4
 
-      - name: Checkout code
-        run: |
-          git clone https://github.com/$GITHUB_REPOSITORY .
-          git checkout $GITHUB_SHA
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
-      - name: Enable flakes
-        run: echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: scientific-assistant
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
       - name: Build platform
         run: nix build .#platform
-
-      - name: Copy artifacts
-        run: |
-          mkdir -p /tmp/bundles
-          cp -r result/bundle/* /tmp/bundles/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: bundles-x86_64-linux
-          path: /tmp/bundles/
+          path: result/bundle/
 
   release:
     needs: build
