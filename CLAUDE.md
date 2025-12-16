@@ -188,16 +188,16 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
 ## CI/CD
 
 **GitHub Actions workflows:**
-- `.github/workflows/ci.yml` - Runs on push/PR, executes `nix flake check` on all platforms
-- `.github/workflows/release.yml` - Runs on version tags, builds for all platforms
+- `.github/workflows/ci.yml` - Runs on push/PR, executes `nix flake check` (Linux x86_64)
+- `.github/workflows/release.yml` - Runs on version tags, builds Linux packages
 
 **Release process:**
 1. Tag version: `git tag v0.1.0 && git push --tags`
-2. GitHub Actions builds for Linux (x86_64) and macOS (Apple Silicon)
+2. GitHub Actions builds for Linux (x86_64)
 3. Artifacts uploaded as draft release
 4. Review and publish release manually
 
-**Note:** Windows builds via cross-compilation to be added in future phase.
+**Note:** macOS and Windows builds to be added in future phase.
 
 ## Build Architecture
 
