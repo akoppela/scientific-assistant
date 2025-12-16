@@ -13,6 +13,9 @@ jobs:
       image: nixos/nix:latest
 
     steps:
+      - name: Install git
+        run: nix-env -iA nixpkgs.git
+
       - name: Checkout code
         run: |
           git clone https://github.com/$GITHUB_REPOSITORY .
