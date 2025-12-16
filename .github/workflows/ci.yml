@@ -24,7 +24,10 @@ jobs:
       - name: Setup Cachix
         run: |
           nix-env -iA nixpkgs.cachix
+          echo "$CACHIX_AUTH_TOKEN" | cachix authtoken --stdin
           cachix use scientific-assistant
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Run all checks
         run: nix flake check
