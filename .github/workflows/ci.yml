@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: nixos/nix:latest
-      options: --cpus 2
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure Nix
+      - name: Checkout code
         run: |
-          echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
-          nix --version
+          git clone https://github.com/$GITHUB_REPOSITORY .
+          git checkout $GITHUB_SHA
+
+      - name: Enable flakes
+        run: echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 
       - name: Run all checks
         run: nix flake check

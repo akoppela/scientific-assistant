@@ -102,8 +102,8 @@ Elm (UI) ←→ Ports ←→ TypeScript ←→ Tauri (Rust)
 
 ## CI/CD
 
-- **CI**: Runs on push/PR to main - linting, tests, builds (Linux x86_64 via NixOS container)
-- **Release**: Tag `v*` triggers Linux build in NixOS container
+- **CI**: Runs on push/PR to main - linting, tests, builds (ubuntu-latest with disk cleanup)
+- **Release**: Tag `v*` triggers Linux build (ubuntu-latest with disk cleanup)
 - **Platforms**: Linux x86_64 (macOS and Windows to be added)
 - **Outputs**: `.deb`, `.rpm` (Linux)
 

@@ -188,7 +188,7 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
 ## CI/CD
 
 **GitHub Actions workflows:**
-- `.github/workflows/ci.yml` - Runs on push/PR, executes `nix flake check` (Linux x86_64)
+- `.github/workflows/ci.yml` - Runs on push/PR, executes `nix flake check` (ubuntu-latest with disk cleanup)
 - `.github/workflows/release.yml` - Runs on version tags, builds Linux packages
 
 **Release process:**
