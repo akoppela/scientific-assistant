@@ -1,5 +1,9 @@
 tasks:
+  - name: Design system dependencies
+    cmd: cd infra/design-system && npm install
   - name: Bridge dependencies
     cmd: cd bridge && npm install
+  - name: Landing dependencies
+    cmd: cd landing && npm install
   - name: Proxy dependencies
     cmd: cd proxy && npm install

@@ -1,10 +1,10 @@
-{ pkgs, elmBuildTools, runParallelTool, tasks }:
+{ pkgs, projectName, elmBuildTools, runParallelTool, tasks }:
 
 let
-  elmReviewCache = pkgs.callPackage ./review { };
+  elmReviewCache = pkgs.callPackage ./review { inherit projectName elmBuildTools; };
 in
 pkgs.mkElmDerivation {
-  name = "scientific-assistant-view";
+  name = "${projectName}-view";
   src = ./.;
   elmJson = ./elm.json;
 

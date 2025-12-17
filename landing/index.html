@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scientific Assistant</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light';
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <nav class="docs-nav">
+      <a href="index.html" class="active">Home</a>
+      <a href="design-system.html">Design System</a>
+      <button id="theme-toggle" class="btn btn-icon btn-ghost ml-auto" aria-label="Toggle theme">
+        <svg class="w-5 h-5 theme-icon-light" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
+          />
+        </svg>
+        <svg
+          class="w-5 h-5 theme-icon-dark hidden"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+          />
+        </svg>
+      </button>
+    </nav>
+
+    <main class="container mx-auto px-8 py-12 max-w-4xl flex flex-col gap-gutter-lg">
+      <div class="text-center flex flex-col gap-gutter-sm">
+        <h1 class="text-4xl font-semibold">Scientific Assistant</h1>
+        <p class="text-xl text-text-secondary">Desktop application for scientific work</p>
+      </div>
+
+      <section class="flex flex-col gap-gutter-sm">
+        <h2 class="text-2xl font-semibold">About</h2>
+        <p class="text-text-secondary">
+          Scientific Assistant is a desktop application for working with scientific texts, tables, formulas, graphs, and
+          image generation.
+        </p>
+        <p class="text-text-secondary">Features light and dark theme support for comfortable extended use.</p>
+      </section>
+
+      <section class="flex flex-col gap-gutter-sm">
+        <h2 class="text-2xl font-semibold">Technologies</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter-sm">
+          <div class="card flex flex-col gap-gutter-xs">
+            <h3 class="font-semibold">Elm 0.19.1</h3>
+            <p class="text-sm text-text-secondary">UI and state management</p>
+          </div>
+          <div class="card flex flex-col gap-gutter-xs">
+            <h3 class="font-semibold">Tauri 2.x</h3>
+            <p class="text-sm text-text-secondary">Desktop shell</p>
+          </div>
+          <div class="card flex flex-col gap-gutter-xs">
+            <h3 class="font-semibold">TypeScript 5.9</h3>
+            <p class="text-sm text-text-secondary">Bridge between Elm and Tauri</p>
+          </div>
+          <div class="card flex flex-col gap-gutter-xs">
+            <h3 class="font-semibold">Tailwind CSS 4</h3>
+            <p class="text-sm text-text-secondary">Styling and design</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-gutter-sm">
+        <h2 class="text-2xl font-semibold">Design System</h2>
+        <p class="text-text-secondary">
+          Nature/Calm palette with teal accent, reducing eye strain during extended work with texts.
+        </p>
+        <a href="design-system.html"> View Design System → </a>
+      </section>
+
+      <section class="flex flex-col gap-gutter-sm">
+        <h2 class="text-2xl font-semibold">Links</h2>
+        <div class="flex gap-gutter-sm">
+          <a href="https://github.com/akoppela/scientific-assistant"> GitHub → </a>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // Theme toggle
+      const html = document.documentElement;
+      const toggleBtn = document.getElementById('theme-toggle');
+      const lightIcon = document.querySelector('.theme-icon-light');
+      const darkIcon = document.querySelector('.theme-icon-dark');
+
+      const updateThemeIcon = theme => {
+        if (theme === 'dark') {
+          lightIcon.classList.add('hidden');
+          darkIcon.classList.remove('hidden');
+        } else {
+          lightIcon.classList.remove('hidden');
+          darkIcon.classList.add('hidden');
+        }
+      };
+
+      toggleBtn.addEventListener('click', () => {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+      });
+
+      // Load saved theme immediately (no animation)
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      html.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+
+      // Enable transitions after page renders
+      window.addEventListener('load', () => {
+        document.body.classList.add('theme-transitions-enabled');
+      });
+    </script>
+  </body>
+</html>

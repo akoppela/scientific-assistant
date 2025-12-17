@@ -1,7 +1,7 @@
-{ pkgs }:
+{ pkgs, projectName }:
 
 pkgs.stdenv.mkDerivation {
-  pname = "run-parallel";
+  pname = "${projectName}-run-parallel";
   version = "1.0.0";
 
   src = ./.;

@@ -1,16 +1,31 @@
-module Main exposing (Model, init, main)
+{- This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at https://mozilla.org/MPL/2.0/.
+-}
+
+
+port module Main exposing (Model, Msg(..), init, main, update, view)
+
+{-| Scientific Assistant application.
+-}
 
 import Browser
-import Html exposing (Html, div, h1, p, text)
-import Html.Attributes
+import Extra.Html.Attributes as Attrs
+import Html
+import Html.Attributes as Attrs
+import Html.Events as Events
+import UI.Icons as Icons
+import UI.Theme as Theme
 
 
-main : Program () Model ()
+{-| Application entry point.
+-}
+main : Program () Model Msg
 main =
     Browser.element
         { init = init
         , update = update
-        , subscriptions = subscriptions
+        , subscriptions = \_ -> Sub.none
         , view = view
         }
 
@@ -19,14 +34,21 @@ main =
 -- MODEL
 
 
+{-| Application state.
+-}
 type alias Model =
     { message : String
+    , theme : Theme.Theme
     }
 
 
-init : () -> ( Model, Cmd () )
+{-| Create initial model.
+-}
+init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { message = "Scientific Assistant" }
+    ( { message = "Научный Ассистент"
+      , theme = Theme.Light
+      }
     , Cmd.none
     )
 
@@ -35,43 +57,107 @@ init _ =
 -- UPDATE
 
 
-update : () -> Model -> ( Model, Cmd () )
-update _ model =
-    ( model, Cmd.none )
+{-| Messages for updating application state.
+-}
+type Msg
+    = ToggleTheme
+
+
+{-| Handle messages and update state.
+-}
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        ToggleTheme ->
+            let
+                newTheme : Theme.Theme
+                newTheme =
+                    Theme.toggle model.theme
+            in
+            ( { model | theme = newTheme }
+            , setTheme (Theme.toString newTheme)
+            )
 
 
 
--- SUBSCRIPTIONS
+-- PORTS
 
 
-subscriptions : Model -> Sub ()
-subscriptions _ =
-    Sub.none
+port setTheme : String -> Cmd msg
 
 
 
 -- VIEW
 
 
-view : Model -> Html ()
+{-| Render application view.
+-}
+view : Model -> Html.Html Msg
 view model =
-    div
-        [ Html.Attributes.style "display" "flex"
-        , Html.Attributes.style "flex-direction" "column"
-        , Html.Attributes.style "align-items" "center"
-        , Html.Attributes.style "justify-content" "center"
-        , Html.Attributes.style "height" "100vh"
-        , Html.Attributes.style "font-family" "system-ui, sans-serif"
-        ]
-        [ h1
-            [ Html.Attributes.style "font-size" "2.5rem"
-            , Html.Attributes.style "font-weight" "bold"
-            , Html.Attributes.style "margin-bottom" "1rem"
+    Html.main_ [ Attrs.class "min-h-screen flex items-center justify-center p-6" ]
+        [ Html.article [ Attrs.class "container max-w-2xl" ]
+            [ Html.header [ Attrs.class "flex flex-col gap-gutter-sm text-center" ]
+                [ Html.h1
+                    [ Attrs.class "text-3xl font-semibold"
+                    , Attrs.testId "app-title"
+                    ]
+                    [ Html.text model.message ]
+                , Html.p
+                    [ Attrs.class "text-secondary"
+                    , Attrs.testId "app-subtitle"
+                    ]
+                    [ Html.text "Чат-приложение для научной работы с поддержкой формул, графиков и кода" ]
+                ]
+            , Html.section [ Attrs.class "flex flex-col gap-gutter-sm mt-8" ]
+                [ Html.nav
+                    [ Attrs.class "flex gap-4 justify-center"
+                    , Attrs.attribute "aria-label" "Настройки приложения"
+                    ]
+                    [ Html.button
+                        [ Attrs.class "btn btn-primary flex items-center gap-2"
+                        , Events.onClick ToggleTheme
+                        , Attrs.testId "theme-toggle-button"
+                        , Attrs.attribute "aria-label"
+                            (case model.theme of
+                                Theme.Light ->
+                                    "Переключить на тёмную тему"
+
+                                Theme.Dark ->
+                                    "Переключить на светлую тему"
+                            )
+                        ]
+                        [ case model.theme of
+                            Theme.Light ->
+                                Icons.moon Icons.Medium
+
+                            Theme.Dark ->
+                                Icons.sun Icons.Medium
+                        , Html.text <|
+                            case model.theme of
+                                Theme.Light ->
+                                    "Тёмная тема"
+
+                                Theme.Dark ->
+                                    "Светлая тема"
+                        ]
+                    ]
+                , Html.aside
+                    [ Attrs.class "flex gap-4 justify-center flex-wrap"
+                    , Attrs.attribute "aria-label" "Примеры компонентов"
+                    ]
+                    [ Html.div
+                        [ Attrs.class "card"
+                        , Attrs.testId "example-card"
+                        , Attrs.attribute "role" "region"
+                        , Attrs.attribute "aria-label" "Пример карточки"
+                        ]
+                        [ Html.p [] [ Html.text "Карточка" ] ]
+                    , Html.span
+                        [ Attrs.class "badge badge-primary"
+                        , Attrs.testId "example-badge"
+                        ]
+                        [ Html.text "Бейдж" ]
+                    ]
+                ]
             ]
-            [ text model.message ]
-        , p
-            [ Html.Attributes.style "color" "#666"
-            , Html.Attributes.style "font-size" "1.2rem"
-            ]
-            [ text "Bootstrap Complete!" ]
         ]

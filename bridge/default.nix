@@ -1,21 +1,31 @@
-{ pkgs, view, runParallelTool, tsLintTools, tasks }:
+{ pkgs, buildNpmPackage, projectName, view, runParallelTool, tsLintTools, tasks }:
 
-pkgs.buildNpmPackage {
-  name = "scientific-assistant-bridge";
+buildNpmPackage {
+  pname = "${projectName}-bridge";
+  version = "0.1.0";
+
   src = ./.;
-  npmDepsHash = "sha256-OinNutTEXVwTu1VQaMwaCD1TdSOFdO6NeacjzZILXwE=";
+
+  npmDepsHash = "sha256-aXcdIxnDyJ/ONUpAdsQH8CvFyMW+Ni7usS52/5hjTIQ=";
+  npmFlags = [ "--ignore-scripts" ];
 
   nativeBuildInputs = runParallelTool ++ tsLintTools;
+
+  postPatch = ''
+    # Make design-system available for npm install
+    mkdir -p ../infra/design-system
+    cp -r ${../infra/design-system}/* ../infra/design-system/
+  '';
 
   dontNpmBuild = true;
 
   buildPhase = ''
     # Copy pre-compiled Elm from view layer
-    mkdir -p build
-    cp ${view}/dist/elm.js build/
+    mkdir -p public
+    cp ${view}/dist/elm.js public/
 
-    # Build with Vite
-    npx vite build
+    # Build
+    npm run build
   '';
 
   checkPhase = ''

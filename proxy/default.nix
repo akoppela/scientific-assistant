@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, projectName, runParallelTool, tsLintTools, tasks }:
 
 let
   # Override wrangler to fully remove prettier/eslint to avoid conflicts with our standalone versions
@@ -17,17 +17,20 @@ in
 {
   # Proxy package (runs tests in checkPhase)
   package = pkgs.buildNpmPackage {
-    pname = "gemini-proxy";
+    pname = "${projectName}-proxy";
     version = "1.0.0";
 
     src = ./.;
 
-    npmDepsHash = "sha256-o05mdjyH9Yv7D98VKYudElBvmBFdtjMCEXDCwRs9eRE=";
+    npmDepsHash = "sha256-h0OEztkZj9rEUeJ3BCCycQ0swDZ8rnMQSgeGhFKvV0o=";
+    npmFlags = [ "--ignore-scripts" ];
+
+    nativeBuildInputs = runParallelTool ++ tsLintTools;
 
     dontNpmBuild = true;
 
     checkPhase = ''
-      npm test
+      run-parallel ${tasks}/check-proxy.yaml
     '';
 
     installPhase = ''

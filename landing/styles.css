@@ -1,0 +1,110 @@
+/* ==========================================================================
+   Landing Site Styles
+   Imports design system and adds site-specific navigation
+   ========================================================================== */
+
+/* Design system fonts and tokens first */
+@import '@scientific-assistant/design-system/styles/fonts.css';
+@import '@scientific-assistant/design-system/styles/tokens.css';
+
+/* Tailwind base layer (uses tokens) */
+@import 'tailwindcss';
+
+/* Design system base, utilities, and components (override Tailwind) */
+@import '@scientific-assistant/design-system/styles/base.css';
+@import '@scientific-assistant/design-system/styles/utilities.css';
+@import '@scientific-assistant/design-system/styles/components.css';
+@import '@scientific-assistant/design-system/styles/markdown.css';
+
+/* Scroll margin to account for sticky header */
+[id] {
+  scroll-margin-top: calc(var(--space-24) + var(--space-4));
+}
+
+/* Site navigation */
+.docs-nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-8);
+  border-bottom: none;
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.docs-nav a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.docs-nav a:hover {
+  color: var(--color-text);
+}
+
+.docs-nav a.active {
+  color: var(--color-primary);
+}
+
+/* Header anchor links */
+.header-anchor {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+}
+
+.header-anchor::before {
+  content: '#';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  padding-right: var(--space-2);
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+h2:hover .header-anchor::before,
+h3:hover .header-anchor::before,
+.header-anchor:focus::before {
+  opacity: 1;
+}
+
+.header-anchor:hover {
+  color: var(--color-primary);
+}
+
+.header-anchor:hover::before {
+  color: var(--color-primary);
+  opacity: 1;
+}
+
+/* Subsection headings need extra top spacing to separate from previous content */
+.doc-section > * + h3 {
+  margin-top: var(--space-4);
+}
+
+.doc-section > h2 + h3 {
+  margin-top: 0;
+}
+
+/* Theme icon visibility - controlled by CSS to prevent flash */
+[data-theme='light'] .theme-icon-light {
+  display: block;
+}
+
+[data-theme='light'] .theme-icon-dark {
+  display: none;
+}
+
+[data-theme='dark'] .theme-icon-light {
+  display: none;
+}
+
+[data-theme='dark'] .theme-icon-dark {
+  display: block;
+}

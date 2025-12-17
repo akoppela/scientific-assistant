@@ -1,0 +1,248 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+/* ==========================================================================
+   Design Tokens - "Nature/Calm"
+
+   Teal/green palette for reduced eye strain during extended reading.
+   Self-hosted fonts with Cyrillic support.
+   Base-3 mathematical system (all values divisible by 3px).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Tailwind Theme Configuration (Base-3)
+   -------------------------------------------------------------------------- */
+@theme {
+  /* Override Tailwind spacing scale to base-3 (--spacing defines 1 unit) */
+  --spacing: 0.1875rem; /* 3px base unit */
+
+  /* Override Tailwind font sizes to base-3 */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.9375rem; /* 15px */
+  --text-base: 0.9375rem; /* 15px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.5rem; /* 24px */
+  --text-2xl: 1.875rem; /* 30px */
+  --text-3xl: 2.25rem; /* 36px */
+  --text-4xl: 3rem; /* 48px */
+  --text-5xl: 3.75rem; /* 60px */
+  --text-6xl: 4.5rem; /* 72px */
+
+  /* Override Tailwind border radius to base-3 */
+  --radius-xs: 0.1875rem; /* 3px */
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-md: 0.5625rem; /* 9px */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 0.9375rem; /* 15px */
+  --radius-2xl: 1.125rem; /* 18px */
+  --radius-full: 9999px;
+}
+
+/* --------------------------------------------------------------------------
+   Light Theme (Default)
+   Soft gray-green backgrounds with teal accent
+   -------------------------------------------------------------------------- */
+:root {
+  /* Backgrounds */
+  --color-bg: #f0f3f2; /* Page background - soft gray-green */
+  --color-bg-surface: #f8faf9; /* Cards, elevated surfaces */
+  --color-bg-muted: #e6ebe9; /* Input backgrounds, subtle areas */
+
+  /* Text */
+  --color-text: #1a2e2e; /* Primary text - dark teal */
+  --color-text-secondary: #5a7070; /* Secondary text */
+  --color-text-muted: #7a9090; /* Placeholder, disabled */
+  --color-text-inverse: #f0f3f2; /* Text on dark backgrounds - soft white */
+
+  /* Primary accent - Teal */
+  --color-primary: #0f766e; /* Primary actions, links - teal-700 */
+  --color-primary-hover: #115e59; /* Primary hover state - teal-800 */
+  --color-primary-subtle: #ccfbf1; /* Primary backgrounds */
+
+  /* Borders */
+  --color-border: #d1dede; /* Default borders */
+  --color-border-strong: #a8bfbf; /* Emphasized borders */
+
+  /* Semantic */
+  --color-error: #dc2626;
+  --color-error-subtle: #fef2f2;
+  --color-success: #16a34a;
+  --color-success-subtle: #f0fdf4;
+
+  /* Message bubbles */
+  --color-bubble-user: #dce9e7; /* User message background */
+  --color-bubble-assistant: #f8faf9; /* Assistant message background */
+
+  /* Table (theme-aware - adapts via var(--color-text)) */
+  --color-table-stripe: color-mix(in oklab, var(--color-text) 2.7%, transparent);
+
+  /* Data visualization palette (charts, graphs) */
+  --color-data-1: #0f766e; /* Teal - primary series */
+  --color-data-2: #d97706; /* Amber - warm contrast */
+  --color-data-3: #4f46e5; /* Indigo - cool contrast */
+  --color-data-4: #e11d48; /* Rose - attention */
+  --color-data-5: #059669; /* Emerald - secondary green */
+  --color-data-6: #7c3aed; /* Purple - accent */
+  --color-data-7: #0284c7; /* Sky - cool blue */
+  --color-data-8: #ea580c; /* Orange - warm */
+  --color-data-9: #db2777; /* Pink - vivid */
+
+  /* Spacing scale - Base 3 (all values divisible by 3px) */
+  --space-1: 0.1875rem; /* 3px */
+  --space-2: 0.375rem; /* 6px */
+  --space-3: 0.5625rem; /* 9px */
+  --space-4: 0.75rem; /* 12px */
+  --space-5: 0.9375rem; /* 15px */
+  --space-6: 1.125rem; /* 18px */
+  --space-7: 1.3125rem; /* 21px */
+  --space-8: 1.5rem; /* 24px */
+  --space-9: 1.6875rem; /* 27px */
+  --space-10: 1.875rem; /* 30px */
+  --space-12: 2.25rem; /* 36px */
+  --space-14: 2.625rem; /* 42px */
+  --space-16: 3rem; /* 48px */
+  --space-20: 3.75rem; /* 60px */
+  --space-24: 4.5rem; /* 72px - grid column unit */
+
+  /* Elevation - Shadows (theme-specific opacity) */
+  --shadow-sm: 0 3px 3px rgba(26, 46, 46, 0.06);
+  --shadow-md: 0 6px 6px -3px rgba(26, 46, 46, 0.09), 0 3px 6px -3px rgba(26, 46, 46, 0.06);
+  --shadow-lg: 0 12px 15px -3px rgba(26, 46, 46, 0.09), 0 6px 9px -3px rgba(26, 46, 46, 0.06);
+
+  /* Z-index scale - Base 100 increments */
+  --z-base: 0; /* Default layer - page content */
+  --z-elevated: 100; /* Cards, surfaces */
+  --z-sticky: 200; /* Sticky headers */
+  --z-dropdown: 300; /* Dropdowns, popovers */
+  --z-overlay: 400; /* Modal backdrops */
+  --z-modal: 500; /* Modal dialogs */
+  --z-toast: 600; /* Toast notifications */
+  --z-tooltip: 700; /* Tooltips */
+
+  /* Typography */
+  --font-sans: 'Nunito', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.9375rem; /* 15px */
+  --font-size-base: 0.9375rem; /* 15px */
+  --font-size-lg: 1.125rem; /* 18px */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.5;
+
+  /* Sizes - Base 3 */
+  --size-touch-target: 2.8125rem; /* 45px - WCAG minimum */
+  --size-scrollbar: 0.5625rem; /* 9px */
+  --size-textarea-max: 12.75rem; /* 204px - ~8 lines */
+  --size-checkbox: 1.125rem; /* 18px - checkbox/radio visual size */
+  --size-checkbox-mark: 0.5625rem; /* 9px - radio inner dot */
+
+  /* Widths */
+  --width-message-max: 75%; /* Chat bubble max width */
+  --width-grid-column: 4.5rem; /* 72px - grid column unit */
+  --width-table-min: 37.5rem; /* 600px - table min width for readability */
+
+  /* Grid System - Base 3 */
+  --grid-columns: 12; /* Standard 12-column grid */
+  --grid-gutter-xs: 0.375rem; /* 6px - extra small gutter */
+  --grid-gutter-sm: 0.75rem; /* 12px - small gutter */
+  --grid-gutter: 1.5rem; /* 24px - default gutter between columns */
+  --grid-gutter-lg: 1.875rem; /* 30px - large gutter */
+
+  /* Container widths */
+  --container-padding: 1.5rem; /* 24px - mobile padding */
+  --container-padding-lg: 3rem; /* 48px - desktop padding */
+  --container-max: 90rem; /* 1440px - 20 × 72px */
+
+  /* Opacity */
+  --opacity-disabled: 0.45;
+  --opacity-active: 0.75;
+  --opacity-subtle: 0.45;
+  --opacity-scrollbar: 0.3;
+  --opacity-scrollbar-hover: 0.6;
+  --opacity-pulse-low: 0.3;
+
+  /* Scrollbar */
+  --color-scrollbar-thumb: var(--color-text-muted);
+
+  /* Borders - Base 3 */
+  --border-width: 0.1875rem; /* 3px */
+  --border-width-thick: 0.375rem; /* 6px */
+  --border-accent: var(--border-width) solid var(--color-primary);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 150ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Animations */
+  --duration-animation-fast: 0.3s;
+  --duration-animation-slow: 1.5s;
+  --distance-slide: 0.5625rem; /* 9px */
+
+  /* Focus ring - Base 3 */
+  --focus-ring-outline: 0.1875rem solid var(--color-text); /* 3px */
+  --focus-ring-offset: 0.1875rem; /* 3px */
+  --focus-ring-shadow: none;
+}
+
+/* --------------------------------------------------------------------------
+   Dark Theme
+   Warm dark gray backgrounds (not cold blue-gray)
+   -------------------------------------------------------------------------- */
+[data-theme='dark'] {
+  /* Backgrounds */
+  --color-bg: #121412; /* Page background - deeper dark gray */
+  --color-bg-surface: #1c1f1c; /* Cards, elevated surfaces */
+  --color-bg-muted: #262a26; /* Input backgrounds, subtle areas */
+
+  /* Text */
+  --color-text: #f2f5f2; /* Primary text - brighter white */
+  --color-text-secondary: #b0b8b0; /* Secondary text - lighter */
+  --color-text-muted: #808880; /* Placeholder, disabled */
+  --color-text-inverse: #1c1f1c; /* Text on bright backgrounds - surface gray */
+
+  /* Primary accent - Teal (brighter for dark mode) */
+  --color-primary: #14b8a6; /* Primary actions, links - teal-500 */
+  --color-primary-hover: #2dd4bf; /* Primary hover state - teal-400 */
+  --color-primary-subtle: #134e4a; /* Primary backgrounds */
+
+  /* Borders */
+  --color-border: #3a3e3a; /* Default borders - more visible */
+  --color-border-strong: #4a4e4a; /* Emphasized borders */
+
+  /* Semantic */
+  --color-error: #f87171;
+  --color-error-subtle: #450a0a;
+  --color-success: #4ade80;
+  --color-success-subtle: #052e16;
+
+  /* Message bubbles */
+  --color-bubble-user: #262a26; /* User message background */
+  --color-bubble-assistant: #1c1f1c; /* Assistant message background */
+
+  /* Data visualization palette (brighter for dark mode) */
+  --color-data-1: #14b8a6; /* Teal */
+  --color-data-2: #fbbf24; /* Amber */
+  --color-data-3: #818cf8; /* Indigo */
+  --color-data-4: #fb7185; /* Rose */
+  --color-data-5: #34d399; /* Emerald */
+  --color-data-6: #a78bfa; /* Purple */
+  --color-data-7: #38bdf8; /* Sky */
+  --color-data-8: #fb923c; /* Orange */
+  --color-data-9: #f472b6; /* Pink */
+
+  /* Elevation - Darker shadows for dark mode */
+  --shadow-sm: 0 3px 3px rgba(0, 0, 0, 0.21);
+  --shadow-md: 0 6px 6px -3px rgba(0, 0, 0, 0.27), 0 3px 6px -3px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 12px 15px -3px rgba(0, 0, 0, 0.3), 0 6px 9px -3px rgba(0, 0, 0, 0.15);
+}

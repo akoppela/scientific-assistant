@@ -4,7 +4,7 @@
       "inputs": [
         "src/Main.elm"
       ],
-      "output": "../bridge/build/elm.js"
+      "output": "../bridge/public/elm.js"
     },
     "build": {
       "inputs": [

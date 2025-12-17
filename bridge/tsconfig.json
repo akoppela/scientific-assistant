@@ -4,9 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
 
-    // Strict Type-Checking (Elm-like guarantees)
+    // Strict Type-Checking
     "strict": true,
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
@@ -29,5 +28,5 @@
     "skipLibCheck": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": ["node_modules", "dist"]
 }

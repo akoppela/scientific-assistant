@@ -1,0 +1,112 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+/* ==========================================================================
+   Base Styles
+   Typography defaults, focus outlines, scrollbar, selection
+   ========================================================================== */
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-size: 100%; /* 16px base - keeps rem calculations accurate */
+    line-height: var(--line-height-relaxed);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--font-size-base); /* 15px for body text */
+    min-height: 100vh;
+  }
+
+  body.theme-transitions-enabled {
+    transition:
+      background-color var(--transition-slow),
+      color var(--transition-slow);
+  }
+
+  /* Focus ring - teal, not blue */
+  :focus-visible {
+    outline: var(--focus-ring-outline);
+    outline-offset: var(--focus-ring-offset);
+    box-shadow: var(--focus-ring-shadow);
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+  }
+
+  /* Scrollbar - refined thin style */
+  ::-webkit-scrollbar {
+    width: var(--size-scrollbar);
+    height: var(--size-scrollbar);
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar-thumb);
+    opacity: var(--opacity-scrollbar);
+    border-radius: var(--radius-full);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    opacity: var(--opacity-scrollbar-hover);
+  }
+
+  /* Typography defaults */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-snug);
+  }
+
+  code,
+  pre,
+  kbd {
+    font-family: var(--font-mono);
+  }
+
+  /* Links */
+  a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    border-radius: var(--radius-xs);
+  }
+
+  a:hover {
+    color: var(--color-primary-hover);
+    text-decoration: none;
+  }
+
+  a:active {
+    opacity: var(--opacity-active);
+  }
+
+  a:focus-visible {
+    text-decoration: none;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

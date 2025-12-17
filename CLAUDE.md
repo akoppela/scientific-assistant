@@ -11,58 +11,116 @@ Scientific Assistant: Desktop chat application for scientific work. Russian UI. 
 | `docs/backlog/`                                       | Notes and ideas      |
 | `docs/archive/`                                       | Completed docs       |
 
+## License
+
+This project is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**.
+
+**License headers:** All source files must include the MPL-2.0 license header at the top.
+
+**Elm:**
+```elm
+{- This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at https://mozilla.org/MPL/2.0/.
+-}
+```
+
+**TypeScript/JavaScript:**
+```typescript
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+```
+
+**Rust:**
+```rust
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+```
+
+**CSS:**
+```css
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+```
+
+**When creating new files:** Add the appropriate license header as the first lines of the file, before any code or imports.
+
 ## Stack
 
 | Technology | Version | Purpose                        |
 |------------|---------|--------------------------------|
 | Elm        | 0.19.1  | UI, state management           |
 | Tauri      | 2.x     | Desktop shell, native features |
-| TypeScript | 5.9.x   | JS bridge layer                |
-| Vite       | 7.x     | Build, dev server              |
-| elm-watch  | 1.2.x   | Elm hot reload (dev only)      |
+| TypeScript | 5.x     | JS bridge layer                |
+| Vite       | 7.2.x   | Build, dev server              |
+| elm-watch  | 1.2.3   | Elm hot reload (dev only)      |
 | vitest     | 4.x     | TypeScript testing             |
-| Tailwind   | 4.x     | Styling                        |
+| Tailwind   | 4.x     | Styling (via @tailwindcss/vite)|
+| echarts    | 6.x     | Charts and visualizations      |
 | Nix        | flakes  | Dev environment, builds        |
 
 ## Project Structure
 
 ```
 scientific-assistant/
-├── view/             # Elm UI layer
-│   ├── src/          # Elm source
-│   ├── tests/        # Elm tests
-│   ├── review/       # elm-review configuration
-│   ├── dist/         # Elm output (gitignored)
-│   ├── elm-watch.json  # Two targets: dev (→ bridge/build/), build (→ dist/)
-│   └── default.nix   # Nix build definition
-├── bridge/           # TypeScript integration layer
-│   ├── src/          # TypeScript source
-│   │   └── __tests__/  # vitest tests
-│   ├── build/        # elm.js from view (gitignored)
-│   ├── dist/         # Vite output (gitignored)
-│   └── default.nix   # Nix build definition
-├── platform/         # Tauri native layer
-│   ├── src/          # Rust source
-│   ├── tauri.conf.json  # Main config
+├── view/                                      # Elm UI layer
+│   ├── src/                                   # Elm source (UI/, Extra/ modules)
+│   ├── tests/                                 # Elm tests (mirrors src/)
+│   ├── review/                                # elm-review configuration
+│   ├── dist/                                  # Elm output (gitignored)
+│   ├── elm-watch.json                         # Two targets: dev (→ bridge/public/), build (→ dist/)
+│   └── default.nix                            # Nix build definition
+├── bridge/                                    # TypeScript integration layer
+│   ├── src/                                   # TypeScript source
+│   │   └── __tests__/                         # vitest tests
+│   ├── public/                                # elm.js from view (gitignored)
+│   ├── dist/                                  # Vite output (gitignored)
+│   └── default.nix                            # Nix build definition
+├── platform/                                  # Tauri native layer
+│   ├── src/                                   # Rust source
+│   ├── capabilities/                          # Tauri capabilities (permissions)
+│   ├── icons/                                 # App icons (png, icns, ico)
+│   ├── tauri.conf.json                        # Main config
 │   ├── tauri.{linux,windows,macos}.conf.json  # Platform-specific
-│   └── default.nix   # Nix build definition (uses Crane)
-├── infra/            # Nix infrastructure packages
-│   ├── elm-watch/    # elm-watch packaged for Nix
+│   └── default.nix                            # Nix build definition (uses Crane)
+├── infra/                                     # Nix infrastructure packages
+│   ├── design-system/                         # Design system npm package
+│   │   ├── src/styles/                        # CSS (fonts, tokens, base, markdown)
+│   │   ├── src/fonts/                         # Self-hosted WOFF2 fonts
+│   │   ├── src/ts/                            # TypeScript (charts, tokens, custom elements)
+│   │   │   └── __tests__/                     # vitest tests
+│   │   └── package.json                       # Consumed by bridge and landing
+│   ├── elm-watch/                             # elm-watch packaged for Nix
 │   │   └── default.nix
-│   ├── run-parallel/ # Parallel task runner
+│   ├── run-parallel/                          # Parallel task runner
 │   │   └── default.nix
-│   └── tasks/        # Task definitions (YAML)
+│   └── tasks/                                 # Task definitions (YAML)
 │       └── default.nix
-├── proxy/            # Cloudflare Worker (Gemini API proxy)
-│   ├── src/          # Worker source
-│   │   └── __tests__/  # vitest tests
-│   ├── .dev.vars     # Local secrets (gitignored)
-│   └── default.nix   # Exports wrangler tool + package (with tests)
-├── docs/             # Documentation
-│   ├── plans/        # Implementation plans
-│   ├── backlog/      # Notes and ideas
-│   └── archive/      # Completed docs
-└── flake.nix         # Main Nix configuration (imports all default.nix files)
+├── landing/                                   # Landing site (GitHub Pages)
+│   ├── src/                                   # TypeScript source (design-system.ts)
+│   ├── public/                                # Static assets (favicon)
+│   ├── *.html                                 # index.html, design-system.html
+│   ├── styles.css                             # Imports design-system
+│   ├── vite.config.ts                         # Multi-page build
+│   └── default.nix                            # buildNpmPackage with formatting checks
+├── proxy/                                     # Cloudflare Worker (Gemini API proxy)
+│   ├── src/                                   # Worker source
+│   │   └── __tests__/                         # vitest tests
+│   ├── .dev.vars                              # Local secrets (gitignored)
+│   └── default.nix                            # Exports wrangler tool + package (with tests)
+├── docs/                                      # Documentation
+│   ├── plans/                                 # Implementation plans
+│   ├── backlog/                               # Notes and ideas
+│   └── archive/                               # Completed docs
+├── .github/workflows/                         # GitHub Actions
+│   ├── ci.yml                                 # CI on push/PR
+│   ├── release.yml                            # Release on version tags
+│   └── deploy-landing.yml                     # Landing site deployment
+└── flake.nix                                  # Main Nix configuration (imports all default.nix files)
 ```
 
 ## Elm Rules
@@ -71,41 +129,56 @@ scientific-assistant/
 2. **No Model/View/Update splits** — All in one file per feature.
 3. **Type aliases for records** — `type alias Model = { ... }`.
 4. **Custom types for variants** — `type Msg = Clicked | Loaded Data`.
-5. **Namespace imports** — `import Feature.Chat as Chat` then `Chat.Model`.
+5. **Qualified imports only** — No `exposing`, all imports qualified. `import Html` then `Html.div`.
 6. **Ports for side effects** — All JS interop via ports.
 7. **Decoders fail explicitly** — No `Maybe` swallowing, surface errors.
+8. **Full documentation** — All modules, types, and functions documented (enforced by elm-review).
+9. **Tests mirror source** — `tests/UI/` matches `src/UI/` structure.
 
 ```elm
--- Good: Feature module
-module Feature.Chat exposing (Model, Msg, init, update, view, subscriptions)
+-- Good: Feature module with qualified imports
+module Feature.Chat exposing (Model, Msg, init, update, view)
+
+import Html
+import Html.Attributes as Attrs
+import Html.Events as Events
 
 type alias Model = { messages : List Message }
 type Msg = Send String | Received Message
 
--- Bad: Split across files
-module Feature.Chat.Model exposing (..)
-module Feature.Chat.View exposing (..)
+view model = Html.div [ Attrs.class "chat" ] [ ... ]
+
+-- Bad: Exposing from imports
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (class)
 ```
 
 ## TypeScript Rules
 
 1. **Strict mode** — No `any`, no implicit `any`.
 2. **Explicit types** — Function parameters and returns typed.
-3. **Ports are typed** — Define port interfaces.
-4. **Tests in __tests__/** — All tests go in `__tests__/` directory next to source.
+3. **Interfaces for objects** — Use `interface` (not `type alias`) for object shapes.
+4. **Ports are typed** — Define port interfaces for Elm interop.
+5. **Namespace imports** — `import * as Module from './module'`, use `Module.function()`.
+6. **Tests in __tests__/** — All tests go in `__tests__/` directory next to source.
+7. **Module pattern** — Export functions, import as namespace (`Theme.set`, `Theme.load`).
 
 ```typescript
-// Good: Typed port interface
-interface ElmApp {
-  ports: {
-    sendMessage: { subscribe: (callback: (msg: string) => void) => void };
-    receiveMessage: { send: (msg: Message) => void };
-  };
+// Good: Namespace import with module pattern
+import * as Theme from './theme';
+
+export function set(theme: string): void { ... }
+export function load(): string { ... }
+
+// Usage: Theme.set('dark'), Theme.load()
+
+// Good: Interface for object shapes
+interface ElmPorts {
+  setTheme: { subscribe: (callback: (theme: string) => void) => void };
 }
 
-// Bad: Untyped
-const app = window.Elm.Main.init({ node: root });
-app.ports.sendMessage.subscribe((msg: any) => {});
+// Bad: Named imports
+import { setTheme, loadTheme } from './theme';
 ```
 
 ## Rust Rules
@@ -133,25 +206,37 @@ fn save_file(path: String, content: String) {
 From project root (inside `nix develop`):
 
 ```bash
-dev             # Start Tauri dev mode (hot reload)
-build:view      # Build view layer (Elm UI)
-build:bridge    # Build bridge layer (TypeScript integration)
-build:platform  # Build platform layer (Tauri + Rust)
-format          # Format all code
-clean           # Remove build artifacts
-proxy:test      # Run proxy tests
-proxy:dev       # Start proxy dev server
-proxy:deploy    # Deploy proxy to Cloudflare
+# Development
+setup                 # Install all npm dependencies (design-system + bridge + landing + proxy)
+dev                   # Start Tauri dev mode (hot reload)
+dev:landing           # Start landing site dev server
+format                # Format all code (Elm + TypeScript + HTML + Rust + Nix)
+clean                 # Remove build artifacts
+
+# Build layers
+build:view            # Build view layer (Elm)
+build:bridge          # Build bridge layer (TypeScript + Vite)
+build:platform        # Build platform layer (Rust + Tauri)
+build:landing         # Build landing site (HTML + Vite)
+build:design-system   # Build design system (CSS + TypeScript)
+
+# Proxy (Cloudflare Worker)
+proxy:test            # Run proxy tests
+proxy:dev             # Start proxy dev server
+proxy:deploy          # Deploy proxy to Cloudflare
 ```
 
 ## Linting Commands
 
-From project root (inside `nix develop`):
+From project root:
 
 ```bash
-cd view && elm-review           # Elm linting
-cd bridge && eslint src/        # TypeScript linting
-cd platform && cargo clippy     # Rust linting
+cd view && elm-review                   # Elm linting
+cd bridge && eslint .                   # TypeScript linting
+cd landing && eslint .                  # TypeScript linting
+cd infra/design-system && eslint .      # TypeScript linting
+cd proxy && eslint .                    # TypeScript linting
+cd platform && cargo clippy             # Rust linting
 ```
 
 ## Proxy
@@ -190,6 +275,7 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
 **GitHub Actions workflows:**
 - `.github/workflows/ci.yml` - Runs on push/PR in NixOS container with Cachix
 - `.github/workflows/release.yml` - Runs on version tags, builds Linux packages
+- `.github/workflows/deploy-landing.yml` - Deploys landing site to GitHub Pages
 
 **Binary cache (public repos only):**
 - Cachix cache: `scientific-assistant` (free for public repos)
@@ -207,9 +293,9 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
 ## Build Architecture
 
 **Development workflow:**
-1. Run `setup` once to install npm dependencies (bridge + proxy)
+1. Run `setup` once to install npm dependencies (design-system + bridge + landing + proxy)
 2. Run `dev` to start:
-   - elm-watch hot dev (view/ → bridge/build/elm.js)
+   - elm-watch hot dev (view/ → bridge/public/elm.js)
    - vite dev server (bridge/ with HMR)
    - cargo tauri dev (platform/ with webview)
 
@@ -221,7 +307,7 @@ fetch("https://gemini-proxy.xxx.workers.dev/?model=gemini-2.5-flash", {
   - Outputs: .deb, .rpm (Linux), .dmg, .app (macOS)
 
 **elm-watch targets:**
-- "dev": outputs to ../bridge/build/elm.js (for development)
+- "dev": outputs to ../bridge/public/elm.js (for development)
 - "build": outputs to dist/elm.js (for Nix builds)
 
 ## Testing
@@ -245,6 +331,27 @@ Every feature follows test-driven development:
 5. Refactor if needed
 6. Commit
 
----
+## Versioning
 
-**Version**: 1.0
+**Per-package versioning:** Each package maintains its own version independently in both `package.json` and `default.nix`.
+
+**When to bump versions:**
+- **Patch (1.0.0 → 1.0.1):** Bug fixes, documentation updates, internal refactoring
+- **Minor (1.0.0 → 1.1.0):** New features, non-breaking API changes
+- **Major (1.0.0 → 2.0.0):** Breaking changes, API redesigns
+
+**Version bump workflow:**
+1. Make code changes to a package
+2. Update version in **both** files:
+   - `<package>/package.json` (for npm packages: bridge, landing, proxy, design-system)
+   - `<package>/default.nix` (all packages)
+3. Ensure both versions match
+4. Commit with message like "chore(bridge): bump version to 1.1.0"
+
+**Why per-package versioning:**
+- Nix only rebuilds packages when their inputs change
+- Independent versions prevent unnecessary rebuilds
+- Each package can evolve at its own pace
+- Clear dependency tracking
+
+**Note:** elm-watch (1.2.3) tracks upstream version and should not be bumped unless upgrading the external tool.

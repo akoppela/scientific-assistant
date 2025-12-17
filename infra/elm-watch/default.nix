@@ -1,12 +1,13 @@
-{ pkgs }:
+{ pkgs, projectName }:
 
 pkgs.buildNpmPackage {
-  pname = "elm-watch-nix";
+  pname = "${projectName}-elm-watch";
   version = "1.2.3";
 
   src = ./.;
 
   npmDepsHash = "sha256-qDiH6VtBctUKGSzXokVG0PVr/iYSKsK2mSmp/5Hocus=";
+  npmFlags = [ "--ignore-scripts" ];
 
   nativeBuildInputs = [ pkgs.makeWrapper ];
 

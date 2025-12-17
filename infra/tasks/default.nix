@@ -1,7 +1,7 @@
-{ pkgs }:
+{ pkgs, projectName }:
 
 pkgs.stdenv.mkDerivation {
-  pname = "task-configs";
+  pname = "${projectName}-tasks";
   version = "1.0.0";
 
   src = ./.;

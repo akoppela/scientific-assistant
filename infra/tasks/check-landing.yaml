@@ -1,0 +1,7 @@
+tasks:
+  - name: TypeScript type check
+    cmd: tsc --noEmit
+  - name: TypeScript lint
+    cmd: eslint .
+  - name: Format check
+    cmd: prettier --check .

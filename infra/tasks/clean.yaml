@@ -1,0 +1,28 @@
+tasks:
+  # Nix
+  - name: Nix result
+    cmd: rm -rf result
+  # View
+  - name: Elm build output
+    cmd: rm -rf view/dist
+  - name: Elm cache
+    cmd: rm -rf view/elm-stuff
+  - name: Elm review cache
+    cmd: rm -rf view/review/elm-stuff
+  # Bridge
+  - name: Bridge Elm build
+    cmd: rm -rf bridge/build
+  - name: Bridge Vite output
+    cmd: rm -rf bridge/dist
+  # Platform
+  - name: Rust/Tauri target
+    cmd: rm -rf platform/target
+  # Landing
+  - name: Landing Vite output
+    cmd: rm -rf landing/dist
+  # Design system
+  - name: Design system output
+    cmd: rm -rf infra/design-system/dist
+  # Proxy
+  - name: Proxy Wrangler output
+    cmd: rm -rf proxy/.wrangler

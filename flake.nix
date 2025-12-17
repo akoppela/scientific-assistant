@@ -37,18 +37,18 @@
 
         craneLib = crane.mkLib pkgs;
 
-        # Infrastructure packages (imported from infra/)
-        elm-watch = import ./infra/elm-watch { inherit pkgs; };
-        run-parallel = import ./infra/run-parallel { inherit pkgs; };
-        tasks = import ./infra/tasks { inherit pkgs; };
+        # Project name (used as prefix for all packages)
+        projectName = "scientific-assistant";
 
-        # Proxy (Cloudflare Worker with tests)
-        proxy = import ./proxy { inherit pkgs; };
+        # Infrastructure packages (imported from infra/)
+        elm-watch = import ./infra/elm-watch { inherit pkgs projectName; };
+        run-parallel = import ./infra/run-parallel { inherit pkgs projectName; };
+        tasks = import ./infra/tasks { inherit pkgs projectName; };
 
         # Build tools (used in nativeBuildInputs for layer builds)
         elmBuildTools = (with pkgs.elmPackages; [ elm elm-format elm-test elm-review ]) ++ [ elm-watch ];
         runParallelTool = [ run-parallel ];
-        tsLintTools = with pkgs; [ eslint prettier ];
+        tsLintTools = with pkgs; [ eslint prettier typescript ];
         rustBuildTools = with pkgs; [ clippy rustfmt ];
         tauriBuildTools = with pkgs; if pkgs.stdenv.isLinux then
           [ pkg-config cargo-tauri gobject-introspection ]
@@ -79,6 +79,7 @@
 
           # Node/TypeScript
           nodejs_22
+          typescript-language-server
 
           # Process management
           mprocs
@@ -99,25 +100,41 @@
 
         # Application layers (each has its own default.nix)
         view = pkgs.callPackage ./view {
-          inherit elmBuildTools runParallelTool tasks;
+          inherit projectName elmBuildTools runParallelTool tasks;
         };
 
         bridge = pkgs.callPackage ./bridge {
-          inherit view runParallelTool tsLintTools tasks;
+          inherit (pkgs) buildNpmPackage;
+          inherit projectName view runParallelTool tsLintTools tasks;
         };
 
         platform = pkgs.callPackage ./platform {
           inherit craneLib bridge tauriBuildTools tauriRuntimeLibs rustBuildTools runParallelTool tasks;
         };
+
+        design-system = pkgs.callPackage ./infra/design-system {
+          inherit (pkgs) buildNpmPackage;
+          inherit projectName runParallelTool tsLintTools tasks;
+        };
+
+        landing = pkgs.callPackage ./landing {
+          inherit (pkgs) buildNpmPackage;
+          inherit projectName runParallelTool tsLintTools tasks design-system;
+        };
+
+        proxy = pkgs.callPackage ./proxy {
+          inherit projectName runParallelTool tsLintTools tasks;
+        };
       in
       {
         packages = {
-          inherit view bridge platform;
+          inherit view bridge platform landing design-system;
+          proxy = proxy.package;
           default = platform;
         };
 
         checks = {
-          inherit view bridge platform;
+          inherit view bridge platform landing design-system;
           proxy = proxy.package;
           nix-fmt = pkgs.runCommand "check-nix-fmt" { nativeBuildInputs = [ pkgs.nixpkgs-fmt pkgs.findutils ]; } ''
             find ${./.} -name '*.nix' -not -path '*/.*' -exec nixpkgs-fmt --check {} +
@@ -150,10 +167,11 @@
           ];
 
           commands = [
+            # Development
             {
               name = "setup";
               category = "development";
-              help = "Install all npm dependencies (bridge + cloudflare)";
+              help = "Install all dependencies";
               command = "run-parallel infra/tasks/setup.yaml";
             }
             {
@@ -163,35 +181,57 @@
               command = "mprocs --config infra/tasks/dev.yaml";
             }
             {
+              name = "dev:landing";
+              category = "development";
+              help = "Start landing site dev server";
+              command = "cd landing && npm run dev";
+            }
+            {
+              name = "clean";
+              category = "development";
+              help = "Remove build artifacts";
+              command = "run-parallel infra/tasks/clean.yaml";
+            }
+            {
+              name = "format";
+              category = "development";
+              help = "Format all code";
+              command = "run-parallel infra/tasks/format.yaml";
+            }
+
+            # Build layers
+            {
               name = "build:view";
               category = "build";
-              help = "Build view layer (Elm UI)";
+              help = "Build view layer (Elm)";
               command = "nix build .#view";
             }
             {
               name = "build:bridge";
               category = "build";
-              help = "Build bridge layer (TS integration)";
+              help = "Build bridge layer (TypeScript + Vite)";
               command = "nix build .#bridge";
             }
             {
               name = "build:platform";
               category = "build";
-              help = "Build platform layer (Tauri + Rust)";
+              help = "Build platform layer (Rust + Tauri)";
               command = "nix build .#platform";
             }
             {
-              name = "format";
-              category = "code quality";
-              help = "Format all code (Elm + Rust + Nix)";
-              command = "run-parallel infra/tasks/format.yaml";
+              name = "build:landing";
+              category = "build";
+              help = "Build landing site (HTML + Vite)";
+              command = "nix build .#landing";
             }
             {
-              name = "clean";
-              category = "maintenance";
-              help = "Remove build artifacts";
-              command = "rm -rf result view/dist view/elm-stuff bridge/build bridge/dist platform/target";
+              name = "build:design-system";
+              category = "build";
+              help = "Build design system (CSS + TypeScript)";
+              command = "nix build .#design-system";
             }
+
+            # Proxy (Cloudflare Worker)
             {
               name = "proxy:test";
               category = "proxy";

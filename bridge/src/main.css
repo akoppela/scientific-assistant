@@ -1,0 +1,22 @@
+/* ==========================================================================
+   Scientific Assistant - Bridge Entry CSS
+   Imports design system with Nature/Calm palette
+   ========================================================================== */
+
+/* Design system fonts and tokens first */
+@import '@scientific-assistant/design-system/styles/fonts.css';
+@import '@scientific-assistant/design-system/styles/tokens.css';
+
+/* Tailwind base layer (uses tokens) */
+@import 'tailwindcss';
+
+/* Tell Tailwind to scan compiled Elm output */
+@source "../public/elm.js";
+
+/* Design system base, utilities, and components (override Tailwind) */
+@import '@scientific-assistant/design-system/styles/base.css';
+@import '@scientific-assistant/design-system/styles/utilities.css';
+@import '@scientific-assistant/design-system/styles/components.css';
+@import '@scientific-assistant/design-system/styles/markdown.css';
+
+/* App-specific styles can be added here if needed */

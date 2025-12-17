@@ -1,4 +1,4 @@
-{ pkgs, elmVersion ? "0.19.1", elmReviewVersion ? "2.13.3" }:
+{ pkgs, projectName, elmBuildTools, elmVersion ? "0.19.1", elmReviewVersion ? "2.13.3" }:
 
 let
   # Read elm-review's internal dependencies from bundled elm.json files
@@ -7,10 +7,10 @@ let
   codecDeps = builtins.fromJSON (builtins.readFile "${elmReviewLib}/ast-codec/elm.json");
 in
 pkgs.stdenv.mkDerivation {
-  name = "elm-review-cache";
+  name = "${projectName}-elm-review-cache";
   src = ./.;
 
-  buildInputs = with pkgs.elmPackages; [ elm elm-review ];
+  buildInputs = elmBuildTools;
 
   installPhase = ''
     ${pkgs.makeDotElmDirectoryCmd {

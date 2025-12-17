@@ -1,23 +1,28 @@
-import { defineConfig } from "vite";
+import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  plugins: [tailwindcss()],
   clearScreen: false,
-  publicDir: "build",  // Serve build/ as static assets
+  publicDir: 'public',
   server: {
     port: 5173,
     strictPort: true,
+    fs: {
+      allow: ['.', '../infra/design-system'],
+    },
     watch: {
-      ignored: ["**/platform/**", "**/*.elm"],
+      ignored: ['**/platform/**', '**/*.elm'],
     },
   },
-  envPrefix: ["VITE_", "TAURI_"],
+  envPrefix: ['VITE_', 'TAURI_'],
   build: {
-    target: "esnext",
-    minify: !process.env.TAURI_DEBUG ? "esbuild" : false,
+    target: 'esnext',
+    minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
     sourcemap: !!process.env.TAURI_DEBUG,
-    outDir: "dist",
+    outDir: 'dist',
     rollupOptions: {
-      external: (id) => id.endsWith(".elm"),
+      external: id => id.endsWith('.elm'),
     },
   },
 });

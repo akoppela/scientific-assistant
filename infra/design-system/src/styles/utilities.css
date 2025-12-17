@@ -1,0 +1,156 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+/* ==========================================================================
+   Utility Classes
+   Theme-aware utilities for backgrounds, text, borders
+   ========================================================================== */
+
+@layer utilities {
+  /* Background utilities */
+  .bg-background {
+    background-color: var(--color-bg);
+  }
+
+  .bg-surface {
+    background-color: var(--color-bg-surface);
+  }
+
+  .bg-muted {
+    background-color: var(--color-bg-muted);
+  }
+
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+
+  .bg-primary-hover {
+    background-color: var(--color-primary-hover);
+  }
+
+  .bg-primary-subtle {
+    background-color: var(--color-primary-subtle);
+  }
+
+  /* Text color utilities */
+  .text-foreground {
+    color: var(--color-text);
+  }
+
+  .text-secondary {
+    color: var(--color-text-secondary);
+  }
+
+  .text-tertiary {
+    color: var(--color-text-muted);
+  }
+
+  .text-inverse {
+    color: var(--color-text-inverse);
+  }
+
+  .text-primary {
+    color: var(--color-primary);
+  }
+
+  /* Border color utilities */
+  .border-default {
+    border-color: var(--color-border);
+  }
+
+  .border-strong {
+    border-color: var(--color-border-strong);
+  }
+
+  .border-primary {
+    border-color: var(--color-primary);
+  }
+
+  /* Shadow utilities (already in Tailwind via @theme) */
+  .shadow-sm {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .shadow-md {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-lg {
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Grid gutter utilities */
+  .gap-gutter-xs {
+    gap: var(--grid-gutter-xs);
+  }
+
+  .gap-gutter-sm {
+    gap: var(--grid-gutter-sm);
+  }
+
+  .gap-gutter {
+    gap: var(--grid-gutter);
+  }
+
+  .gap-gutter-lg {
+    gap: var(--grid-gutter-lg);
+  }
+
+  /* Row gap (gap-y) gutter utilities */
+  .gap-y-gutter-xs {
+    row-gap: var(--grid-gutter-xs);
+  }
+
+  .gap-y-gutter-sm {
+    row-gap: var(--grid-gutter-sm);
+  }
+
+  .gap-y-gutter {
+    row-gap: var(--grid-gutter);
+  }
+
+  .gap-y-gutter-lg {
+    row-gap: var(--grid-gutter-lg);
+  }
+
+  /* Column gap (gap-x) gutter utilities */
+  .gap-x-gutter-xs {
+    column-gap: var(--grid-gutter-xs);
+  }
+
+  .gap-x-gutter-sm {
+    column-gap: var(--grid-gutter-sm);
+  }
+
+  .gap-x-gutter {
+    column-gap: var(--grid-gutter);
+  }
+
+  .gap-x-gutter-lg {
+    column-gap: var(--grid-gutter-lg);
+  }
+}
+
+/* Spinner utility - can be used with @apply */
+@utility spinner {
+  --spinner-size: var(--space-8);
+  --spinner-border: var(--space-1);
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  border: var(--spinner-border) solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  animation: spin var(--duration-animation-slow) linear infinite;
+}
+
+@utility spinner-sm {
+  --spinner-size: var(--space-5);
+  --spinner-border: calc(var(--space-1) * 2 / 3);
+}
+
+@utility spinner-lg {
+  --spinner-size: var(--space-12);
+  --spinner-border: var(--space-2);
+}

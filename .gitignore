@@ -1,14 +1,14 @@
 # Nix
 result
-result-*
 
 # View layer
 view/elm-stuff/
 view/dist/
+view/review/elm-stuff/
 
 # Bridge layer
 bridge/node_modules/
-bridge/build/
+bridge/public/elm.js
 bridge/dist/
 
 # Platform layer
@@ -19,8 +19,16 @@ platform/gen/
 proxy/node_modules/
 proxy/.dev.vars
 
-# Infrastructure packages
+# Design system
+infra/design-system/node_modules/
+infra/design-system/dist
+
+# Elm watch
 infra/elm-watch/node_modules/
+
+# Landing site
+landing/node_modules/
+landing/dist/
 
 # Environment
 .direnv/
