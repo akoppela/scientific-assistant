@@ -4,7 +4,7 @@
 -}
 
 
-port module Main exposing (Model, Msg(..), init, main, update, view)
+port module Main exposing (Flags, Model, Msg(..), init, main, update, view)
 
 {-| Scientific Assistant application.
 -}
@@ -14,13 +14,14 @@ import Extra.Html.Attributes as Attrs
 import Html
 import Html.Attributes as Attrs
 import Html.Events as Events
+import I18n
 import UI.Icons as Icons
 import UI.Theme as Theme
 
 
 {-| Application entry point.
 -}
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
         { init = init
@@ -30,6 +31,14 @@ main =
         }
 
 
+{-| Flags passed from JavaScript.
+-}
+type alias Flags =
+    { savedTheme : Maybe String
+    , savedLanguage : Maybe String
+    }
+
+
 
 -- MODEL
 
@@ -37,17 +46,30 @@ main =
 {-| Application state.
 -}
 type alias Model =
-    { message : String
-    , theme : Theme.Theme
+    { theme : Theme.Theme
+    , language : I18n.Language
     }
 
 
 {-| Create initial model.
 -}
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { message = "Научный Ассистент"
-      , theme = Theme.Light
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    let
+        theme : Theme.Theme
+        theme =
+            flags.savedTheme
+                |> Maybe.andThen Theme.fromString
+                |> Maybe.withDefault Theme.default
+
+        language : I18n.Language
+        language =
+            flags.savedLanguage
+                |> Maybe.andThen I18n.languageFromString
+                |> Maybe.withDefault I18n.defaultLanguage
+    in
+    ( { theme = theme
+      , language = language
       }
     , Cmd.none
     )
@@ -61,6 +83,7 @@ init _ =
 -}
 type Msg
     = ToggleTheme
+    | ToggleLanguage
 
 
 {-| Handle messages and update state.
@@ -78,12 +101,25 @@ update msg model =
             , setTheme (Theme.toString newTheme)
             )
 
+        ToggleLanguage ->
+            let
+                newLanguage : I18n.Language
+                newLanguage =
+                    I18n.toggleLanguage model.language
+            in
+            ( { model | language = newLanguage }
+            , setLanguage (I18n.languageToString newLanguage)
+            )
+
 
 
 -- PORTS
 
 
 port setTheme : String -> Cmd msg
+
+
+port setLanguage : String -> Cmd msg
 
 
 
@@ -101,17 +137,17 @@ view model =
                     [ Attrs.class "text-3xl font-semibold"
                     , Attrs.testId "app-title"
                     ]
-                    [ Html.text model.message ]
+                    [ Html.text (I18n.scientificAssistant model.language) ]
                 , Html.p
                     [ Attrs.class "text-secondary"
                     , Attrs.testId "app-subtitle"
                     ]
-                    [ Html.text "Чат-приложение для научной работы с поддержкой формул, графиков и кода" ]
+                    [ Html.text (I18n.chatAppForScientificWork model.language) ]
                 ]
             , Html.section [ Attrs.class "flex flex-col gap-gutter-sm mt-8" ]
                 [ Html.nav
                     [ Attrs.class "flex gap-4 justify-center"
-                    , Attrs.attribute "aria-label" "Настройки приложения"
+                    , Attrs.attribute "aria-label" (I18n.applicationSettings model.language)
                     ]
                     [ Html.button
                         [ Attrs.class "btn btn-primary flex items-center gap-2"
@@ -120,10 +156,10 @@ view model =
                         , Attrs.attribute "aria-label"
                             (case model.theme of
                                 Theme.Light ->
-                                    "Переключить на тёмную тему"
+                                    I18n.switchToDarkTheme model.language
 
                                 Theme.Dark ->
-                                    "Переключить на светлую тему"
+                                    I18n.switchToLightTheme model.language
                             )
                         ]
                         [ case model.theme of
@@ -135,28 +171,50 @@ view model =
                         , Html.text <|
                             case model.theme of
                                 Theme.Light ->
-                                    "Тёмная тема"
+                                    I18n.darkTheme model.language
 
                                 Theme.Dark ->
-                                    "Светлая тема"
+                                    I18n.lightTheme model.language
+                        ]
+                    , Html.button
+                        [ Attrs.class "btn btn-secondary flex items-center gap-2"
+                        , Events.onClick ToggleLanguage
+                        , Attrs.testId "language-toggle-button"
+                        , Attrs.attribute "aria-label"
+                            (case model.language of
+                                I18n.En ->
+                                    I18n.switchToRussian model.language
+
+                                I18n.Ru ->
+                                    I18n.switchToEnglish model.language
+                            )
+                        ]
+                        [ Icons.globe Icons.Medium
+                        , Html.text <|
+                            case model.language of
+                                I18n.En ->
+                                    I18n.russian model.language
+
+                                I18n.Ru ->
+                                    I18n.english model.language
                         ]
                     ]
                 , Html.aside
                     [ Attrs.class "flex gap-4 justify-center flex-wrap"
-                    , Attrs.attribute "aria-label" "Примеры компонентов"
+                    , Attrs.attribute "aria-label" (I18n.componentExamples model.language)
                     ]
                     [ Html.div
                         [ Attrs.class "card"
                         , Attrs.testId "example-card"
                         , Attrs.attribute "role" "region"
-                        , Attrs.attribute "aria-label" "Пример карточки"
+                        , Attrs.attribute "aria-label" (I18n.cardExample model.language)
                         ]
-                        [ Html.p [] [ Html.text "Карточка" ] ]
+                        [ Html.p [] [ Html.text (I18n.card model.language) ] ]
                     , Html.span
                         [ Attrs.class "badge badge-primary"
                         , Attrs.testId "example-badge"
                         ]
-                        [ Html.text "Бейдж" ]
+                        [ Html.text (I18n.badge model.language) ]
                     ]
                 ]
             ]

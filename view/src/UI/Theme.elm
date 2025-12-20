@@ -4,7 +4,7 @@
 -}
 
 
-module UI.Theme exposing (Theme(..), fromString, toString, toggle)
+module UI.Theme exposing (Theme(..), default, fromString, toString, toggle)
 
 {-| Theme management for Scientific Assistant.
 
@@ -18,6 +18,13 @@ Provides light and dark theme variants with string serialization.
 type Theme
     = Light
     | Dark
+
+
+{-| Default theme (Light).
+-}
+default : Theme
+default =
+    Light
 
 
 {-| Switch between themes.

@@ -5,13 +5,19 @@
 import './main.css';
 
 import * as TauriCore from '@tauri-apps/api/core';
+import * as Language from './language';
 import * as Theme from './theme';
+
+interface Flags {
+  savedTheme: string | null;
+  savedLanguage: string | null;
+}
 
 declare global {
   interface Window {
     Elm: {
       Main: {
-        init: (options: { node: HTMLElement }) => ElmApp;
+        init: (options: { node: HTMLElement; flags: Flags }) => ElmApp;
       };
     };
   }
@@ -20,6 +26,9 @@ declare global {
 interface ElmPorts {
   setTheme: {
     subscribe: (callback: (theme: string) => void) => void;
+  };
+  setLanguage: {
+    subscribe: (callback: (lang: string) => void) => void;
   };
 }
 
@@ -33,15 +42,30 @@ async function initApp(): Promise<void> {
     throw new Error('Root element #app not found');
   }
 
-  // Load saved theme
+  // Load saved preferences
   const savedTheme = Theme.load();
-  Theme.set(savedTheme);
+  const savedLanguage = Language.load();
 
-  // Initialize Elm (loaded via script tag)
-  const app = window.Elm.Main.init({ node: root });
+  // Apply preferences to document (only if previously saved)
+  if (savedTheme) {
+    Theme.set(savedTheme);
+  }
+  if (savedLanguage) {
+    Language.set(savedLanguage);
+  }
 
-  // Subscribe to theme changes
+  // Initialize Elm with flags
+  const app = window.Elm.Main.init({
+    node: root,
+    flags: {
+      savedTheme,
+      savedLanguage,
+    },
+  });
+
+  // Subscribe to preference changes
   app.ports.setTheme.subscribe(Theme.set);
+  app.ports.setLanguage.subscribe(Language.set);
 
   // Test Tauri command
   const greeting = await TauriCore.invoke<string>('greet', { name: 'Elm' });

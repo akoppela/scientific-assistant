@@ -15,6 +15,15 @@ import Test
 import Test.Html.Selector as Selector
 
 
+{-| Default flags for testing.
+-}
+defaultFlags : Main.Flags
+defaultFlags =
+    { savedTheme = Nothing
+    , savedLanguage = Nothing
+    }
+
+
 {-| Test helper for starting program.
 -}
 start : ProgramTest.ProgramTest Main.Model Main.Msg (Cmd Main.Msg)
@@ -24,7 +33,7 @@ start =
         , update = Main.update
         , view = Main.view
         }
-        |> ProgramTest.start ()
+        |> ProgramTest.start defaultFlags
 
 
 {-| Main test suite.

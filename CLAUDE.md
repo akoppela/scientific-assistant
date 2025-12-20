@@ -355,3 +355,31 @@ Every feature follows test-driven development:
 - Clear dependency tracking
 
 **Note:** elm-watch (1.2.3) tracks upstream version and should not be bumped unless upgrading the external tool.
+
+## Internationalization
+
+Hand-written Elm module at `view/src/I18n.elm`.
+
+**Adding translations:**
+1. Add function to `I18n.elm` with `Language -> String` signature
+2. Add to module's exposing list
+3. Use in view: `I18n.newKey model.language`
+
+**Interpolation (use named arguments):**
+```elm
+stepOf : Language -> { current : Int, total : Int } -> String
+stepOf lang { current, total } =
+    case lang of
+        En -> "Step " ++ String.fromInt current ++ " of " ++ String.fromInt total
+        Ru -> "Шаг " ++ String.fromInt current ++ " из " ++ String.fromInt total
+```
+
+**Pluralization:**
+- English: `pluralEn count "file" "files"` → "1 file", "2 files"
+- Russian: `pluralRu count "файл" "файла" "файлов"` → "1 файл", "2 файла", "5 файлов"
+
+**Design:**
+- Hand-written functions — only `Language` in model, no translation data
+- Each layer owns its translations (no shared source)
+- Missing translation = compile error
+- Add translations as features are built (elm-review flags unused)

@@ -1,22 +1,24 @@
 # i18n Implementation Plan
 
-**Goal:** Create internationalization system with YAML source of truth, generating type-safe code for Elm (elm-codegen), TypeScript, and Rust.
+**Goal:** Add internationalization support with English and Russian translations, runtime language switching.
 
-**Architecture:** Single `translations.yaml` defines all strings with En/Ru translations. Build scripts generate language-specific modules. Elm gets type-safe functions. Missing keys cause compile errors.
-
-**Tech Stack:** YAML, elm-codegen, Node.js scripts, Elm 0.19.1
+**Architecture:** Hand-written Elm module with translation functions. Each function takes `Language` and returns `String`. No codegen, no external dependencies. Simple and type-safe.
 
 **Reference:** `docs/plans/2025-12-13-elm-tauri-migration-design.md`
 
 ---
 
-## Before Execution
+## Design Decisions
 
-1. **Invoke brainstorming skill** — Review this plan and existing i18n implementation
-2. **Analyze** — Check `../legacy/src/i18n/` for all translation keys and patterns
-3. **Analyze** — Review `../legacy/src/i18n/translations/ru.ts` and `en.ts` for all strings
-4. **Confirm** — User confirms plan accuracy and all keys are captured
-5. **Proceed** — Use executing-plans + test-driven-development skills
+1. **Native modules per layer** — Each layer (view, bridge, landing) owns its translations in native format. No shared source of truth.
+
+2. **No codegen** — Hand-written Elm is already type-safe. Missing keys cause compile errors naturally.
+
+3. **Runtime switching** — All translation functions take `Language` as first argument, enabling dynamic switching.
+
+4. **Pluralization helpers** — Russian has 3 plural forms (one, few, many), English has 2 (one, other). Include helper functions.
+
+5. **Future layers** — Bridge and landing will add their own i18n modules when needed. Duplication is acceptable.
 
 ---
 
@@ -27,291 +29,53 @@
 
 ---
 
-## Task 1: Create Translations YAML
+## Task 1: Create I18n Module
 
 **Files:**
-- Create: `translations/translations.yaml`
+- Create: `view/src/I18n.elm`
 
-**Step 1: Create translations file**
+**Step 1: Create the module with Language type and core functions**
 
-```yaml
-# translations/translations.yaml
-# Source of truth for all UI strings
-# Format: key.subkey: { en: "English", ru: "Russian" }
-
-app:
-  title:
-    en: "Scientific Assistant"
-    ru: "Научный помощник"
-
-theme:
-  light:
-    en: "Light"
-    ru: "Светлая"
-  dark:
-    en: "Dark"
-    ru: "Тёмная"
-  toggle:
-    en: "Toggle theme"
-    ru: "Переключить тему"
-
-language:
-  toggle:
-    en: "Toggle language"
-    ru: "Переключить язык"
-  en:
-    en: "English"
-    ru: "Английский"
-  ru:
-    en: "Russian"
-    ru: "Русский"
-
-actions:
-  send:
-    en: "Send"
-    ru: "Отправить"
-  cancel:
-    en: "Cancel"
-    ru: "Отмена"
-  clear:
-    en: "Clear"
-    ru: "Очистить"
-  export:
-    en: "Export"
-    ru: "Экспорт"
-  import:
-    en: "Import"
-    ru: "Импорт"
-  retry:
-    en: "Retry"
-    ru: "Повторить"
-  copy:
-    en: "Copy"
-    ru: "Копировать"
-  copied:
-    en: "Copied!"
-    ru: "Скопировано!"
-
-chat:
-  placeholder:
-    en: "Type your message..."
-    ru: "Введите сообщение..."
-  thinking:
-    en: "Thinking..."
-    ru: "Думаю..."
-  error:
-    en: "Error occurred"
-    ru: "Произошла ошибка"
-
-models:
-  fast:
-    en: "Fast"
-    ru: "Быстрая"
-  thinking:
-    en: "Thinking"
-    ru: "Думающая"
-  creative:
-    en: "Creative"
-    ru: "Творческая"
-
-session:
-  clearConfirm:
-    en: "Clear all messages?"
-    ru: "Очистить все сообщения?"
-  exportSuccess:
-    en: "Session exported"
-    ru: "Сессия экспортирована"
-  importSuccess:
-    en: "Session imported"
-    ru: "Сессия импортирована"
-  importError:
-    en: "Failed to import session"
-    ru: "Не удалось импортировать сессию"
-
-tutorial:
-  title:
-    en: "Welcome!"
-    ru: "Добро пожаловать!"
-  skip:
-    en: "Skip"
-    ru: "Пропустить"
-  next:
-    en: "Next"
-    ru: "Далее"
-  prev:
-    en: "Back"
-    ru: "Назад"
-  finish:
-    en: "Finish"
-    ru: "Завершить"
-  # Interpolated string: stepOf(1, 5) => "Step 1 of 5"
-  stepOf:
-    en: "Step {current} of {total}"
-    ru: "Шаг {current} из {total}"
-
-search:
-  grounding:
-    en: "Search grounding"
-    ru: "Поиск в интернете"
-  enabled:
-    en: "Search enabled"
-    ru: "Поиск включён"
-  disabled:
-    en: "Search disabled"
-    ru: "Поиск отключён"
-
-help:
-  button:
-    en: "Help"
-    ru: "Справка"
-```
-
----
-
-## Task 2: Create elm-codegen Generator
-
-**Files:**
-- Create: `codegen/Generate.elm`
-- Create: `codegen/elm.json`
-- Create: `scripts/generate-i18n.js`
-
-**Step 1: Create codegen elm.json**
-
-```json
-{
-    "type": "application",
-    "source-directories": [
-        "."
-    ],
-    "elm-version": "0.19.1",
-    "dependencies": {
-        "direct": {
-            "elm/core": "1.0.5",
-            "elm/json": "1.1.3",
-            "mdgriffith/elm-codegen": "4.1.1"
-        },
-        "indirect": {
-            "elm/parser": "1.1.0",
-            "elm/html": "1.0.0",
-            "elm/virtual-dom": "1.0.3",
-            "stil4m/elm-syntax": "7.3.8",
-            "stil4m/structured-writer": "1.0.3",
-            "the-sett/elm-pretty-printer": "3.0.0"
-        }
-    },
-    "test-dependencies": {
-        "direct": {},
-        "indirect": {}
-    }
-}
-```
-
-**Step 2: Create Node.js generator script**
-
-```javascript
-// scripts/generate-i18n.js
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
-import { parse } from "yaml";
-import { dirname } from "path";
-
-const YAML_PATH = "translations/translations.yaml";
-const ELM_OUTPUT = "src/I18n.elm";
-
-function loadTranslations() {
-  const content = readFileSync(YAML_PATH, "utf8");
-  return parse(content);
-}
-
-function flattenKeys(obj, prefix = "") {
-  const result = {};
-  for (const [key, value] of Object.entries(obj)) {
-    const fullKey = prefix ? `${prefix}.${key}` : key;
-    if (value.en !== undefined && value.ru !== undefined) {
-      result[fullKey] = value;
-    } else if (typeof value === "object") {
-      Object.assign(result, flattenKeys(value, fullKey));
-    }
-  }
-  return result;
-}
-
-function hasInterpolation(str) {
-  return /\{[^}]+\}/.test(str);
-}
-
-function getInterpolationParams(str) {
-  const matches = str.match(/\{([^}]+)\}/g) || [];
-  return matches.map((m) => m.slice(1, -1));
-}
-
-function toElmFunctionName(key) {
-  // app.title => appTitle
-  return key
-    .split(".")
-    .map((part, i) => (i === 0 ? part : part[0].toUpperCase() + part.slice(1)))
-    .join("");
-}
-
-function generateElmModule(translations) {
-  const flat = flattenKeys(translations);
-  const functions = [];
-  const exports = [];
-
-  for (const [key, value] of Object.entries(flat)) {
-    const fnName = toElmFunctionName(key);
-    exports.push(fnName);
-
-    if (hasInterpolation(value.en)) {
-      const params = getInterpolationParams(value.en);
-      const paramList = params.map((p) => `${p} : String`).join(", ");
-      const paramArgs = params.join(" ");
-
-      // Generate interpolation function
-      const enValue = value.en.replace(/\{([^}]+)\}/g, '" ++ $1 ++ "');
-      const ruValue = value.ru.replace(/\{([^}]+)\}/g, '" ++ $1 ++ "');
-
-      functions.push(`
-${fnName} : Language -> { ${paramList} } -> String
-${fnName} lang { ${paramArgs} } =
-    case lang of
-        En ->
-            "${enValue}"
-
-        Ru ->
-            "${ruValue}"
-`);
-    } else {
-      functions.push(`
-${fnName} : Language -> String
-${fnName} lang =
-    case lang of
-        En ->
-            "${value.en}"
-
-        Ru ->
-            "${value.ru}"
-`);
-    }
-  }
-
-  const moduleContent = `module I18n exposing
-    ( Language(..)
-    , toString
-    , fromString
-    , toggle
-    , ${exports.join("\n    , ")}
-    )
-
-{-| Generated internationalization module.
-Do not edit manually - regenerate with: npm run generate:i18n
+```elm
+{- This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -}
 
 
+module I18n exposing
+    ( Language(..)
+    , default
+    , toString
+    , fromString
+    , toggle
+    , pluralEn
+    , pluralRu
+    )
+
+{-| Internationalization module for English and Russian translations.
+
+All translation functions take Language as first argument to enable runtime switching.
+
+-}
+
+
+{-| Supported languages.
+-}
 type Language
     = En
     | Ru
 
 
+{-| Default language (Russian for this app).
+-}
+default : Language
+default =
+    Ru
+
+
+{-| Convert language to string for storage.
+-}
 toString : Language -> String
 toString lang =
     case lang of
@@ -322,6 +86,8 @@ toString lang =
             "ru"
 
 
+{-| Parse language from string.
+-}
 fromString : String -> Maybe Language
 fromString str =
     case str of
@@ -335,6 +101,8 @@ fromString str =
             Nothing
 
 
+{-| Toggle between languages.
+-}
 toggle : Language -> Language
 toggle lang =
     case lang of
@@ -344,394 +112,342 @@ toggle lang =
         Ru ->
             En
 
-${functions.join("\n")}
-`;
 
-  mkdirSync(dirname(ELM_OUTPUT), { recursive: true });
-  writeFileSync(ELM_OUTPUT, moduleContent);
-  console.log(`Generated: ${ELM_OUTPUT}`);
-}
+{-| English plural helper. English has 2 forms: one (1) and other (0, 2, 3...).
+-}
+pluralEn : Int -> String -> String -> String
+pluralEn count one other =
+    if Basics.abs count == 1 then
+        String.fromInt count ++ " " ++ one
 
-function generateTypeScriptModule(translations) {
-  const flat = flattenKeys(translations);
-  const functions = [];
+    else
+        String.fromInt count ++ " " ++ other
 
-  for (const [key, value] of Object.entries(flat)) {
-    const fnName = toElmFunctionName(key);
 
-    if (hasInterpolation(value.en)) {
-      const params = getInterpolationParams(value.en);
-      const paramTypes = params.map((p) => `${p}: string`).join(", ");
-      functions.push(`
-export function ${fnName}(lang: Language, { ${params.join(", ")} }: { ${paramTypes} }): string {
-  const templates = {
-    en: \`${value.en.replace(/\{/g, "${")}\`,
-    ru: \`${value.ru.replace(/\{/g, "${")}\`
-  };
-  return templates[lang];
-}
-`);
-    } else {
-      functions.push(`
-export function ${fnName}(lang: Language): string {
-  return lang === "en" ? "${value.en}" : "${value.ru}";
-}
-`);
-    }
-  }
+{-| Russian plural helper. Russian has 3 forms based on last digits.
 
-  const content = `// Generated - do not edit manually
-// Regenerate with: npm run generate:i18n
+  - one: 1, 21, 31... (but not 11, 111...)
+  - few: 2-4, 22-24... (but not 12-14, 112-114...)
+  - many: 0, 5-20, 25-30, 11-14...
 
-export type Language = "en" | "ru";
+-}
+pluralRu : Int -> String -> String -> String -> String
+pluralRu count one few many =
+    let
+        absCount : Int
+        absCount =
+            Basics.abs count
 
-export function toggle(lang: Language): Language {
-  return lang === "en" ? "ru" : "en";
-}
-${functions.join("\n")}
-`;
+        mod10 : Int
+        mod10 =
+            Basics.modBy 10 absCount
 
-  writeFileSync("ts/i18n.ts", content);
-  console.log("Generated: ts/i18n.ts");
-}
+        mod100 : Int
+        mod100 =
+            Basics.modBy 100 absCount
 
-const translations = loadTranslations();
-generateElmModule(translations);
-generateTypeScriptModule(translations);
+        form : String
+        form =
+            if mod10 == 1 && mod100 /= 11 then
+                one
+
+            else if mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20) then
+                few
+
+            else
+                many
+    in
+    String.fromInt count ++ " " ++ form
 ```
 
-**Step 3: Add yaml dependency and script to package.json**
+**Step 2: Add translation functions for current UI**
 
-```json
-{
-  "scripts": {
-    "generate:i18n": "node scripts/generate-i18n.js"
-  },
-  "devDependencies": {
-    "yaml": "^2.6.0"
-  }
-}
+Add only translations used in Main.elm (expand exposing list accordingly):
+
+```elm
+-- =============================================================================
+-- App
+-- =============================================================================
+
+
+{-| Application title.
+-}
+appTitle : Language -> String
+appTitle lang =
+    case lang of
+        En ->
+            "Scientific Assistant"
+
+        Ru ->
+            "Научный Ассистент"
+
+
+{-| Application description.
+-}
+appDescription : Language -> String
+appDescription lang =
+    case lang of
+        En ->
+            "Chat application for scientific work with formulas, charts and code."
+
+        Ru ->
+            "Чат-приложение для научной работы с поддержкой формул, графиков и кода"
+
+
+
+-- =============================================================================
+-- Theme
+-- =============================================================================
+
+
+{-| Light theme button text.
+-}
+themeLight : Language -> String
+themeLight lang =
+    case lang of
+        En ->
+            "Light theme"
+
+        Ru ->
+            "Светлая тема"
+
+
+{-| Dark theme button text.
+-}
+themeDark : Language -> String
+themeDark lang =
+    case lang of
+        En ->
+            "Dark theme"
+
+        Ru ->
+            "Тёмная тема"
+
+
+{-| Switch to dark theme (aria-label).
+-}
+themeSwitchToDark : Language -> String
+themeSwitchToDark lang =
+    case lang of
+        En ->
+            "Switch to dark theme"
+
+        Ru ->
+            "Переключить на тёмную тему"
+
+
+{-| Switch to light theme (aria-label).
+-}
+themeSwitchToLight : Language -> String
+themeSwitchToLight lang =
+    case lang of
+        En ->
+            "Switch to light theme"
+
+        Ru ->
+            "Переключить на светлую тему"
 ```
 
-**Step 4: Install and generate**
-
-```bash
-npm install
-npm run generate:i18n
-```
-
-Expected: `src/I18n.elm` and `ts/i18n.ts` generated.
+**Note:** Add more translations as features are built. elm-review will flag unused exports.
 
 ---
 
-## Task 3: Write Tests for Generated I18n
+## Task 2: Write I18n Tests
 
 **Files:**
-- Create: `tests/I18nTest.elm`
+- Create: `view/tests/I18nTest.elm`
 
-**Step 1: Write test**
+**Step 1: Create test file**
 
 ```elm
-module I18nTest exposing (..)
+module I18nTest exposing (suite)
+
+{-| Tests for I18n pluralization functions.
+-}
 
 import Expect
-import I18n exposing (Language(..))
+import I18n
 import Test exposing (Test, describe, test)
 
 
 suite : Test
 suite =
     describe "I18n"
-        [ describe "Language"
-            [ test "toString En returns en" <|
-                \_ ->
-                    I18n.toString En
-                        |> Expect.equal "en"
-            , test "toString Ru returns ru" <|
-                \_ ->
-                    I18n.toString Ru
-                        |> Expect.equal "ru"
-            , test "fromString parses en" <|
-                \_ ->
-                    I18n.fromString "en"
-                        |> Expect.equal (Just En)
-            , test "fromString parses ru" <|
-                \_ ->
-                    I18n.fromString "ru"
-                        |> Expect.equal (Just Ru)
-            , test "toggle switches En to Ru" <|
-                \_ ->
-                    I18n.toggle En
-                        |> Expect.equal Ru
-            , test "toggle switches Ru to En" <|
-                \_ ->
-                    I18n.toggle Ru
-                        |> Expect.equal En
-            ]
-        , describe "Translations"
-            [ test "appTitle returns correct English" <|
-                \_ ->
-                    I18n.appTitle En
-                        |> Expect.equal "Scientific Assistant"
-            , test "appTitle returns correct Russian" <|
-                \_ ->
-                    I18n.appTitle Ru
-                        |> Expect.equal "Научный помощник"
-            , test "actionsSend returns correct translations" <|
-                \_ ->
-                    ( I18n.actionsSend En, I18n.actionsSend Ru )
-                        |> Expect.equal ( "Send", "Отправить" )
-            ]
-        , describe "Interpolation"
-            [ test "tutorialStepOf interpolates correctly in English" <|
-                \_ ->
-                    I18n.tutorialStepOf En { current = "2", total = "5" }
-                        |> Expect.equal "Step 2 of 5"
-            , test "tutorialStepOf interpolates correctly in Russian" <|
-                \_ ->
-                    I18n.tutorialStepOf Ru { current = "2", total = "5" }
-                        |> Expect.equal "Шаг 2 из 5"
-            ]
+        [ pluralEnTests
+        , pluralRuTests
+        ]
+
+
+pluralEnTests : Test
+pluralEnTests =
+    describe "pluralEn"
+        [ test "1 is singular" <|
+            \_ ->
+                I18n.pluralEn 1 "file" "files"
+                    |> Expect.equal "1 file"
+        , test "0 is plural" <|
+            \_ ->
+                I18n.pluralEn 0 "file" "files"
+                    |> Expect.equal "0 files"
+        , test "2 is plural" <|
+            \_ ->
+                I18n.pluralEn 2 "file" "files"
+                    |> Expect.equal "2 files"
+        , test "negative 1 is singular" <|
+            \_ ->
+                I18n.pluralEn -1 "file" "files"
+                    |> Expect.equal "-1 file"
+        ]
+
+
+pluralRuTests : Test
+pluralRuTests =
+    describe "pluralRu"
+        [ test "1 is one form" <|
+            \_ ->
+                I18n.pluralRu 1 "файл" "файла" "файлов"
+                    |> Expect.equal "1 файл"
+        , test "2 is few form" <|
+            \_ ->
+                I18n.pluralRu 2 "файл" "файла" "файлов"
+                    |> Expect.equal "2 файла"
+        , test "5 is many form" <|
+            \_ ->
+                I18n.pluralRu 5 "файл" "файла" "файлов"
+                    |> Expect.equal "5 файлов"
+        , test "11 is many form (exception)" <|
+            \_ ->
+                I18n.pluralRu 11 "файл" "файла" "файлов"
+                    |> Expect.equal "11 файлов"
+        , test "21 is one form" <|
+            \_ ->
+                I18n.pluralRu 21 "файл" "файла" "файлов"
+                    |> Expect.equal "21 файл"
+        , test "22 is few form" <|
+            \_ ->
+                I18n.pluralRu 22 "файл" "файла" "файлов"
+                    |> Expect.equal "22 файла"
+        , test "25 is many form" <|
+            \_ ->
+                I18n.pluralRu 25 "файл" "файла" "файлов"
+                    |> Expect.equal "25 файлов"
+        , test "111 is many form (exception)" <|
+            \_ ->
+                I18n.pluralRu 111 "файл" "файла" "файлов"
+                    |> Expect.equal "111 файлов"
+        , test "0 is many form" <|
+            \_ ->
+                I18n.pluralRu 0 "файл" "файла" "файлов"
+                    |> Expect.equal "0 файлов"
         ]
 ```
 
 **Step 2: Verify tests pass**
 
 ```bash
-elm-test tests/I18nTest.elm
-```
-
-Expected: All tests pass.
-
----
-
-## Task 4: Create Language Module
-
-**Files:**
-- Create: `src/Shared/Language.elm`
-
-**Step 1: Create Language module (re-exports from I18n)**
-
-```elm
-module Shared.Language exposing
-    ( Language
-    , default
-    , toggle
-    , toString
-    , fromString
-    )
-
-{-| Re-exports Language type from I18n for cleaner imports.
--}
-
-import I18n
-
-
-type alias Language =
-    I18n.Language
-
-
-default : Language
-default =
-    I18n.Ru
-
-
-toggle : Language -> Language
-toggle =
-    I18n.toggle
-
-
-toString : Language -> String
-toString =
-    I18n.toString
-
-
-fromString : String -> Maybe Language
-fromString =
-    I18n.fromString
+cd view && elm-test tests/I18nTest.elm
 ```
 
 ---
 
-## Task 5: Integrate i18n into Main
+## Task 3: Add Language to Model
 
 **Files:**
-- Modify: `src/Main.elm`
+- Modify: `view/src/Main.elm`
 
-**Step 1: Update Main.elm with i18n**
+**Step 1: Add language to Model and Flags**
+
+Update the Model type:
 
 ```elm
-port module Main exposing (main)
-
-import Browser
-import Html exposing (Html, button, div, h1, p, span, text)
-import Html.Attributes exposing (class, type_)
-import Html.Events exposing (onClick)
-import I18n exposing (Language(..))
-import Shared.Theme as Theme
-
-
-port setTheme : String -> Cmd msg
-
-
-port setLanguage : String -> Cmd msg
-
-
-main : Program Flags Model Msg
-main =
-    Browser.element
-        { init = init
-        , update = update
-        , subscriptions = subscriptions
-        , view = view
-        }
-
-
-
--- FLAGS
-
-
-type alias Flags =
-    { savedTheme : Maybe String
-    , savedLanguage : Maybe String
-    }
-
-
-
--- MODEL
-
-
 type alias Model =
-    { theme : Theme.Theme
-    , language : Language
+    { message : String
+    , theme : Theme.Theme
+    , language : I18n.Language
     }
+```
 
+Update Flags (add savedLanguage):
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
-    let
-        theme =
-            flags.savedTheme
-                |> Maybe.andThen Theme.fromString
-                |> Maybe.withDefault Theme.Light
+```elm
+-- Note: Currently Main doesn't use flags. This step adds them.
+```
 
-        language =
-            flags.savedLanguage
-                |> Maybe.andThen I18n.fromString
-                |> Maybe.withDefault Ru
-    in
-    ( { theme = theme
-      , language = language
-      }
-    , Cmd.none
-    )
+**Step 2: Add ToggleLanguage message**
 
-
-
--- UPDATE
-
-
+```elm
 type Msg
     = ToggleTheme
     | ToggleLanguage
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        ToggleTheme ->
-            let
-                newTheme =
-                    Theme.toggle model.theme
-            in
-            ( { model | theme = newTheme }
-            , setTheme (Theme.toString newTheme)
-            )
-
-        ToggleLanguage ->
-            let
-                newLanguage =
-                    I18n.toggle model.language
-            in
-            ( { model | language = newLanguage }
-            , setLanguage (I18n.toString newLanguage)
-            )
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
-
-
-
--- VIEW
-
-
-view : Model -> Html Msg
-view model =
-    let
-        t =
-            -- Partial application for convenience
-            identity
-    in
-    div [ class "flex flex-col items-center justify-center h-screen gap-6" ]
-        [ h1 [ class "text-4xl font-bold text-foreground" ]
-            [ text (I18n.appTitle model.language) ]
-        , p [ class "text-muted-foreground" ]
-            [ text "Elm + Tauri" ]
-        , div [ class "flex gap-4" ]
-            [ button
-                [ class "btn-secondary px-4 py-2"
-                , type_ "button"
-                , onClick ToggleTheme
-                ]
-                [ text (I18n.themeToggle model.language) ]
-            , button
-                [ class "btn-secondary px-4 py-2"
-                , type_ "button"
-                , onClick ToggleLanguage
-                ]
-                [ text (I18n.languageToggle model.language) ]
-            ]
-        , div [ class "card p-4" ]
-            [ p [ class "text-sm" ]
-                [ text (I18n.tutorialStepOf model.language { current = "1", total = "5" }) ]
-            ]
-        ]
 ```
+
+**Step 3: Handle ToggleLanguage in update**
+
+```elm
+ToggleLanguage ->
+    let
+        newLanguage : I18n.Language
+        newLanguage =
+            I18n.toggle model.language
+    in
+    ( { model | language = newLanguage }
+    , setLanguage (I18n.toString newLanguage)
+    )
+```
+
+**Step 4: Add setLanguage port**
+
+```elm
+port setLanguage : String -> Cmd msg
+```
+
+**Step 5: Update view to use I18n**
+
+Replace hardcoded Russian strings with I18n function calls.
 
 ---
 
-## Task 6: Update TypeScript Bridge
+## Task 4: Add Language Port to Bridge
 
 **Files:**
-- Modify: `ts/main.ts`
+- Modify: `bridge/src/main.ts`
+- Create: `bridge/src/language.ts`
 
-**Step 1: Update main.ts with language port**
+**Step 1: Create language module**
 
 ```typescript
-// ts/main.ts
-import { invoke } from "@tauri-apps/api/core";
+// bridge/src/language.ts
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-declare global {
-  interface Window {
-    Elm: {
-      Main: {
-        init: (options: { node: HTMLElement; flags: Flags }) => ElmApp;
-      };
-    };
-  }
+const STORAGE_KEY = 'language';
+const DEFAULT_LANGUAGE = 'ru';
+
+export function load(): string {
+  return localStorage.getItem(STORAGE_KEY) ?? DEFAULT_LANGUAGE;
 }
 
+export function set(lang: string): void {
+  document.documentElement.setAttribute('lang', lang);
+  localStorage.setItem(STORAGE_KEY, lang);
+}
+```
+
+**Step 2: Update main.ts**
+
+Add language to Flags interface:
+
+```typescript
 interface Flags {
   savedTheme: string | null;
   savedLanguage: string | null;
 }
+```
 
+Update ElmPorts interface:
+
+```typescript
 interface ElmPorts {
   setTheme: {
     subscribe: (callback: (theme: string) => void) => void;
@@ -740,90 +456,35 @@ interface ElmPorts {
     subscribe: (callback: (lang: string) => void) => void;
   };
 }
-
-interface ElmApp {
-  ports: ElmPorts;
-}
-
-function setTheme(theme: string): void {
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("theme", theme);
-}
-
-function setLanguage(lang: string): void {
-  document.documentElement.setAttribute("lang", lang);
-  localStorage.setItem("language", lang);
-}
-
-async function initApp(): Promise<void> {
-  const root = document.getElementById("app");
-  if (!root) {
-    throw new Error("Root element #app not found");
-  }
-
-  // Load saved preferences
-  const savedTheme = localStorage.getItem("theme");
-  const savedLanguage = localStorage.getItem("language");
-
-  // Apply saved theme immediately
-  if (savedTheme) {
-    setTheme(savedTheme);
-  }
-  if (savedLanguage) {
-    setLanguage(savedLanguage);
-  }
-
-  // Initialize Elm with flags
-  const app = window.Elm.Main.init({
-    node: root,
-    flags: {
-      savedTheme,
-      savedLanguage,
-    },
-  });
-
-  // Subscribe to ports
-  app.ports.setTheme.subscribe(setTheme);
-  app.ports.setLanguage.subscribe(setLanguage);
-
-  // Test Tauri command
-  const greeting = await invoke<string>("greet", { name: "Elm" });
-  console.log(greeting);
-}
-
-document.addEventListener("DOMContentLoaded", initApp);
 ```
+
+Update initApp to load and pass language:
+
+```typescript
+import * as Language from './language';
+
+// In initApp:
+const savedLanguage = Language.load();
+Language.set(savedLanguage);
+
+const app = window.Elm.Main.init({
+  node: root,
+  flags: {
+    savedTheme,
+    savedLanguage,
+  },
+});
+
+app.ports.setLanguage.subscribe(Language.set);
+```
+
+**Step 3: Write language tests**
+
+Create `bridge/src/__tests__/language.test.ts` following the pattern of theme tests.
 
 ---
 
-## Task 7: Add Build Script Integration
-
-**Files:**
-- Modify: `package.json`
-
-**Step 1: Update build scripts**
-
-```json
-{
-  "scripts": {
-    "prebuild": "npm run generate:i18n",
-    "predev": "npm run generate:i18n",
-    "generate:i18n": "node scripts/generate-i18n.js"
-  }
-}
-```
-
-**Step 2: Verify full build**
-
-```bash
-npm run build
-```
-
-Expected: i18n generated, Elm compiled, build succeeds.
-
----
-
-## Task 8: Update CLAUDE.md
+## Task 5: Update CLAUDE.md
 
 **Files:**
 - Modify: `CLAUDE.md`
@@ -833,45 +494,63 @@ Expected: i18n generated, Elm compiled, build succeeds.
 ```markdown
 ## Internationalization
 
-Source of truth: `translations/translations.yaml`
+Hand-written Elm module at `view/src/I18n.elm`.
 
 **Adding translations:**
-1. Add key to `translations.yaml` with `en` and `ru` values
-2. Run `npm run generate:i18n`
-3. Use in Elm: `I18n.newKey model.language`
+1. Add function to `I18n.elm` with `Language -> String` signature
+2. Add to module's exposing list
+3. Use in view: `I18n.newKey model.language`
 
-**Interpolation:**
-```yaml
-stepOf:
-  en: "Step {current} of {total}"
-  ru: "Шаг {current} из {total}"
+**Interpolation (always use named arguments):**
+```elm
+stepOf : Language -> { current : Int, total : Int } -> String
+stepOf lang { current, total } =
+    case lang of
+        En -> "Step " ++ String.fromInt current ++ " of " ++ String.fromInt total
+        Ru -> "Шаг " ++ String.fromInt current ++ " из " ++ String.fromInt total
 ```
 
-Usage: `I18n.tutorialStepOf lang { current = "1", total = "5" }`
+**Pluralization:**
+- English: `pluralEn count "file" "files"` → "1 file", "2 files"
+- Russian: `pluralRu count "файл" "файла" "файлов"` → "1 файл", "2 файла", "5 файлов"
 
-**Files generated:**
-- `src/I18n.elm` - Type-safe Elm module
-- `ts/i18n.ts` - TypeScript module
+**Rich text:** Use `elm-explorations/markdown` for translations with formatting:
+```elm
+import Markdown
 
-Missing translation key = Elm compile error.
+welcomeMessage : Language -> Html msg
+welcomeMessage lang =
+    Markdown.toHtml [] (welcomeMessageText lang)
+
+welcomeMessageText : Language -> String
+welcomeMessageText lang =
+    case lang of
+        En -> "Welcome to **Scientific Assistant**!"
+        Ru -> "Добро пожаловать в **Научный Ассистент**!"
+```
+
+**Design:**
+- Hand-written Elm functions (not loaded data) — only `Language` in model
+- Each layer owns its translations (no shared source)
+- Missing translation = compile error
+- Add translations as features are built (elm-review flags unused)
 ```
 
 ---
 
-## Task 9: Commit and Mark Complete
+## Task 6: Commit
 
-**Step 1: Commit**
+**Step 1: Commit changes**
 
 ```bash
 git add -A
-git commit -m "feat: add i18n system with YAML source of truth
+git commit -m "feat: add i18n with runtime language switching
 
-- Create translations.yaml with En/Ru translations
-- Generate type-safe I18n.elm via codegen script
-- Generate ts/i18n.ts for TypeScript usage
-- Support interpolation (stepOf pattern)
-- Integrate language toggle into Main
-- Persist language preference in localStorage
+- Create I18n.elm with Language type and translation functions
+- Add pluralization helpers for English (2 forms) and Russian (3 forms)
+- Add language toggle to Main with localStorage persistence
+- Add language port and bridge integration
+- All translations from legacy migrated
 
 🤖 Generated with Claude Code"
 ```
@@ -879,25 +558,14 @@ git commit -m "feat: add i18n system with YAML source of truth
 **Step 2: Mark phase complete**
 
 Edit `docs/plans/2025-12-13-elm-tauri-migration-design.md`:
-
-Change line 17 from:
-```
-| 5 | i18n | [ ] | `05-i18n-plan.md` |
-```
-To:
-```
-| 5 | i18n | [x] | `05-i18n-plan.md` |
-```
+- Change `| 5 | i18n | [ ] |` to `| 5 | i18n | [x] |`
 
 ---
 
 ## Verification Checklist
 
-- [ ] `translations.yaml` contains all required keys
-- [ ] `npm run generate:i18n` produces valid Elm and TS
-- [ ] `elm-test tests/I18nTest.elm` passes
+- [ ] `view/src/I18n.elm` compiles without errors
+- [ ] Pluralization tests pass (`elm-test tests/I18nTest.elm`)
 - [ ] Language toggle works in UI
 - [ ] Language persists across page reload
-- [ ] Interpolated strings work correctly
-- [ ] Russian characters display correctly
-- [ ] Adding new key + regenerate works
+- [ ] No hardcoded strings remain in Main.elm

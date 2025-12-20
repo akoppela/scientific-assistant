@@ -14,7 +14,7 @@ Replace Solid.js with Elm to eliminate runtime exceptions and timing issues. Add
 | 2  | Cloudflare Proxy   | [x]    | `02-cloudflare-proxy-plan.md` |
 | 3  | Infrastructure     | [x]    | `03-infrastructure-plan.md`   |
 | 4  | Re-design          | [x]    | `04-redesign-plan.md`         |
-| 5  | i18n               | [ ]    | `05-i18n-plan.md`             |
+| 5  | i18n               | [x]    | `05-i18n-plan.md`             |
 | 6  | Main Shell         | [ ]    | `06-main-shell-plan.md`       |
 | 7  | Message List + LLM | [ ]    | `07-message-list-plan.md`     |
 | 8  | Chat Features      | [ ]    | `08-chat-features-plan.md`    |

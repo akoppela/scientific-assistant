@@ -22,30 +22,30 @@ describe('Theme Management', () => {
     it('saves theme to localStorage', () => {
       Theme.set('dark');
 
-      expect(localStorage.getItem('theme')).toBe('dark');
+      expect(localStorage.getItem(Theme.STORAGE_KEY)).toBe('dark');
     });
 
     it('handles light theme', () => {
       Theme.set('light');
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-      expect(localStorage.getItem('theme')).toBe('light');
+      expect(localStorage.getItem(Theme.STORAGE_KEY)).toBe('light');
     });
   });
 
   describe('Theme.load', () => {
     it('returns saved theme from localStorage', () => {
-      localStorage.setItem('theme', 'dark');
+      localStorage.setItem(Theme.STORAGE_KEY, 'dark');
 
       expect(Theme.load()).toBe('dark');
     });
 
-    it('returns "light" as default when no theme is saved', () => {
-      expect(Theme.load()).toBe('light');
+    it('returns null when no theme is saved', () => {
+      expect(Theme.load()).toBe(null);
     });
 
     it('returns saved light theme', () => {
-      localStorage.setItem('theme', 'light');
+      localStorage.setItem(Theme.STORAGE_KEY, 'light');
 
       expect(Theme.load()).toBe('light');
     });
@@ -58,7 +58,9 @@ describe('Theme Management', () => {
       document.documentElement.removeAttribute('data-theme');
 
       const savedTheme = Theme.load();
-      Theme.set(savedTheme);
+      if (savedTheme) {
+        Theme.set(savedTheme);
+      }
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     });
