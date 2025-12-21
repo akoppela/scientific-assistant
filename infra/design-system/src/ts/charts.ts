@@ -828,7 +828,6 @@ export function legendStyle(names: string[], tokens: ChartTokens) {
     itemGap: tokens.space6,
     itemWidth: tokens.space3,
     itemHeight: tokens.space3,
-    icon: 'path://M5,0a5,5,0,1,0,5,5A5,5,0,0,0,5,0Z M0,13',
     bottom: 0,
     left: 'center',
   };

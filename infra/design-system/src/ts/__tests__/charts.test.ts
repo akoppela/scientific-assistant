@@ -113,7 +113,6 @@ function legendExpectation(names: string[]) {
     itemGap: 18,
     itemWidth: 9,
     itemHeight: 9,
-    icon: 'path://M5,0a5,5,0,1,0,5,5A5,5,0,0,0,5,0Z M0,13',
     bottom: 0,
     left: 'center',
   };
