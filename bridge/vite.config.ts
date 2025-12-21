@@ -5,6 +5,9 @@ export default defineConfig({
   plugins: [tailwindcss()],
   clearScreen: false,
   publicDir: 'public',
+  resolve: {
+    dedupe: ['echarts'],
+  },
   server: {
     port: 5173,
     strictPort: true,

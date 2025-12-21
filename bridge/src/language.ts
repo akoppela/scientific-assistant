@@ -4,8 +4,20 @@
 
 export const STORAGE_KEY = 'language';
 
-export function set(lang: string): void {
+export type Language = 'en' | 'ru';
+
+const TITLES: Record<Language, string> = {
+  en: 'Scientific Assistant',
+  ru: 'Научный Ассистент',
+};
+
+export function isLanguage(value: string): value is Language {
+  return value === 'en' || value === 'ru';
+}
+
+export function set(lang: Language): void {
   document.documentElement.setAttribute('lang', lang);
+  document.title = TITLES[lang];
   localStorage.setItem(STORAGE_KEY, lang);
 }
 

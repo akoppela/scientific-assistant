@@ -6,22 +6,19 @@
 
 module I18n exposing
     ( Language(..)
-    , applicationSettings
-    , badge
-    , card
-    , cardExample
-    , chatAppForScientificWork
-    , componentExamples
-    , darkTheme
+    , appDescription
+    , attachFile
     , defaultLanguage
-    , english
+    , help
+    , inputHint
     , languageFromString
     , languageToString
-    , lightTheme
+    , messagePlaceholder
     , pluralEn
     , pluralRu
-    , russian
     , scientificAssistant
+    , send
+    , settings
     , switchToDarkTheme
     , switchToEnglish
     , switchToLightTheme
@@ -148,52 +145,28 @@ scientificAssistant lang =
             "Научный Ассистент"
 
 
-{-| "Chat application for scientific work with formulas, charts and code."
+{-| "Data analysis, tables, formulas and charts.".
 -}
-chatAppForScientificWork : Language -> String
-chatAppForScientificWork lang =
+appDescription : Language -> String
+appDescription lang =
     case lang of
         En ->
-            "Chat application for scientific work with formulas, charts and code."
+            "Data analysis, tables, formulas and charts."
 
         Ru ->
-            "Чат-приложение для научной работы с поддержкой формул, графиков и кода"
+            "Анализ данных, таблицы, формулы и графики."
 
 
-{-| "Light theme".
+{-| Input hint with instructions.
 -}
-lightTheme : Language -> String
-lightTheme lang =
+inputHint : Language -> String
+inputHint lang =
     case lang of
         En ->
-            "Light theme"
+            "Write a message and press Ctrl+Enter.\nAttach files for analysis."
 
         Ru ->
-            "Светлая тема"
-
-
-{-| "Dark theme".
--}
-darkTheme : Language -> String
-darkTheme lang =
-    case lang of
-        En ->
-            "Dark theme"
-
-        Ru ->
-            "Тёмная тема"
-
-
-{-| "Switch to dark theme".
--}
-switchToDarkTheme : Language -> String
-switchToDarkTheme lang =
-    case lang of
-        En ->
-            "Switch to dark theme"
-
-        Ru ->
-            "Переключить на тёмную тему"
+            "Напишите сообщение и нажмите Ctrl+Enter.\nПрикрепите файлы для анализа."
 
 
 {-| "Switch to light theme".
@@ -208,28 +181,16 @@ switchToLightTheme lang =
             "Переключить на светлую тему"
 
 
-{-| "English".
+{-| "Switch to dark theme".
 -}
-english : Language -> String
-english lang =
+switchToDarkTheme : Language -> String
+switchToDarkTheme lang =
     case lang of
         En ->
-            "English"
+            "Switch to dark theme"
 
         Ru ->
-            "Английский"
-
-
-{-| "Russian".
--}
-russian : Language -> String
-russian lang =
-    case lang of
-        En ->
-            "Russian"
-
-        Ru ->
-            "Русский"
+            "Переключить на тёмную тему"
 
 
 {-| "Switch to English".
@@ -256,61 +217,61 @@ switchToRussian lang =
             "Переключить на русский"
 
 
-{-| "Application settings".
+{-| "Help".
 -}
-applicationSettings : Language -> String
-applicationSettings lang =
+help : Language -> String
+help lang =
     case lang of
         En ->
-            "Application settings"
+            "Help"
 
         Ru ->
-            "Настройки приложения"
+            "Помощь"
 
 
-{-| "Component examples".
+{-| "Settings".
 -}
-componentExamples : Language -> String
-componentExamples lang =
+settings : Language -> String
+settings lang =
     case lang of
         En ->
-            "Component examples"
+            "Settings"
 
         Ru ->
-            "Примеры компонентов"
+            "Настройки"
 
 
-{-| "Card".
+{-| "Send".
 -}
-card : Language -> String
-card lang =
+send : Language -> String
+send lang =
     case lang of
         En ->
-            "Card"
+            "Send"
 
         Ru ->
-            "Карточка"
+            "Отправить"
 
 
-{-| "Card example".
+{-| "Attach file".
 -}
-cardExample : Language -> String
-cardExample lang =
+attachFile : Language -> String
+attachFile lang =
     case lang of
         En ->
-            "Card example"
+            "Attach file"
 
         Ru ->
-            "Пример карточки"
+            "Прикрепить файл"
 
 
-{-| "Badge".
+{-| "Write a message...".
 -}
-badge : Language -> String
-badge lang =
+messagePlaceholder : Language -> String
+messagePlaceholder lang =
     case lang of
         En ->
-            "Badge"
+            "Write a message..."
 
         Ru ->
-            "Бейдж"
+            "Напишите сообщение..."

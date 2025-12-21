@@ -32,8 +32,11 @@ craneLib.buildPackage {
   '';
 
   installPhase = ''
-    mkdir -p $out
-    cp -r target/release/bundle $out/
+    mkdir -p $out/bin
+    cp target/release/scientific-assistant $out/bin/
+
+    mkdir -p $out/bundle
+    cp -r target/release/bundle/* $out/bundle/
   '';
 
   doCheck = true;

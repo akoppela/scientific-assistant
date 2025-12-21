@@ -4,7 +4,13 @@
 
 export const STORAGE_KEY = 'theme';
 
-export function set(theme: string): void {
+export type Theme = 'light' | 'dark';
+
+export function isTheme(value: string): value is Theme {
+  return value === 'light' || value === 'dark';
+}
+
+export function set(theme: Theme): void {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem(STORAGE_KEY, theme);
 }

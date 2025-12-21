@@ -8,8 +8,7 @@
  * Handles theme toggle, animation demos, and chart rendering.
  */
 
-import '@scientific-assistant/design-system';
-import type * as DesignSystem from '@scientific-assistant/design-system';
+import * as DesignSystem from '@scientific-assistant/design-system';
 
 // ============================================================================
 // Chart Data
@@ -324,5 +323,36 @@ customElements.whenDefined('ds-chart').then(() => {
     document.addEventListener('DOMContentLoaded', initCharts);
   } else {
     initCharts();
+  }
+});
+
+// ============================================================================
+// Menu Initialization
+// ============================================================================
+
+// SVG icons for demo (in real app, these come from Elm)
+const moonSvg =
+  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>';
+const globeSvg =
+  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5a17.92 17.92 0 0 1-8.716-2.247m0 0A8.966 8.966 0 0 1 3 12c0-1.97.633-3.794 1.708-5.282" /></svg>';
+const helpSvg =
+  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" /></svg>';
+
+// Initialize demo menu
+document.addEventListener('DOMContentLoaded', () => {
+  const menu = document.getElementById('demo-settings-menu');
+  if (menu && menu instanceof DesignSystem.DsMenu) {
+    menu.items = [
+      { id: 'theme', type: 'action', icon: moonSvg, label: 'Dark theme', suffix: '' },
+      { id: 'language', type: 'action', icon: globeSvg, label: 'Russian', suffix: 'RU' },
+      { type: 'divider' },
+      { id: 'help', type: 'action', icon: helpSvg, label: 'Help', suffix: '' },
+    ];
+
+    menu.addEventListener('item-click', (e: Event) => {
+      if (e instanceof CustomEvent) {
+        console.log('Menu item clicked:', e.detail.id);
+      }
+    });
   }
 });

@@ -58,11 +58,25 @@ describe('Theme Management', () => {
       document.documentElement.removeAttribute('data-theme');
 
       const savedTheme = Theme.load();
-      if (savedTheme) {
+      if (savedTheme && Theme.isTheme(savedTheme)) {
         Theme.set(savedTheme);
       }
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    });
+  });
+
+  describe('Theme.isTheme', () => {
+    it('returns true for valid themes', () => {
+      expect(Theme.isTheme('light')).toBe(true);
+      expect(Theme.isTheme('dark')).toBe(true);
+    });
+
+    it('returns false for invalid themes', () => {
+      expect(Theme.isTheme('blue')).toBe(false);
+      expect(Theme.isTheme('auto')).toBe(false);
+      expect(Theme.isTheme('')).toBe(false);
+      expect(Theme.isTheme('invalid')).toBe(false);
     });
   });
 });

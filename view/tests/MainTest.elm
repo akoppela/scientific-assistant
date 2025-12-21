@@ -2,13 +2,15 @@
    License, v. 2.0. If a copy of the MPL was not distributed with this
    file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -}
+
+
 module MainTest exposing (suite)
 
 {-| Tests for Main module.
 -}
 
-import Extra.Html.Attributes as Attrs
 import Extra.ProgramTest as ProgramTest
+import Extra.Selector as Selector
 import Main
 import ProgramTest
 import Test
@@ -41,73 +43,53 @@ start =
 suite : Test.Test
 suite =
     Test.describe "Main"
-        [ Test.describe "init"
-            [ Test.test "displays app title" <|
+        [ Test.describe "shell layout"
+            [ Test.test "displays app title in header" <|
                 \_ ->
                     start
                         |> ProgramTest.expectViewHas
-                            [ Selector.attribute (Attrs.testId "app-title") ]
-            , Test.test "displays app subtitle" <|
+                            [ Selector.testId "app-title" ]
+            , Test.test "displays settings button" <|
                 \_ ->
                     start
                         |> ProgramTest.expectViewHas
-                            [ Selector.attribute (Attrs.testId "app-subtitle") ]
-            , Test.test "displays theme toggle button" <|
+                            [ Selector.testId "settings-button" ]
+            , Test.test "displays message input" <|
                 \_ ->
                     start
                         |> ProgramTest.expectViewHas
-                            [ Selector.attribute (Attrs.testId "theme-toggle-button") ]
-            , Test.test "has example card" <|
+                            [ Selector.testId "message-input" ]
+            , Test.test "displays send button" <|
                 \_ ->
                     start
                         |> ProgramTest.expectViewHas
-                            [ Selector.attribute (Attrs.testId "example-card") ]
-            , Test.test "has example badge" <|
-                \_ ->
-                    start
-                        |> ProgramTest.expectViewHas
-                            [ Selector.attribute (Attrs.testId "example-badge") ]
-            ]
-        , Test.describe "theme toggle"
-            [ Test.test "clicking toggle button changes state" <|
-                \_ ->
-                    start
-                        |> ProgramTest.clickByTestId "theme-toggle-button"
-                        |> ProgramTest.expectViewHas
-                            [ Selector.attribute (Attrs.testId "theme-toggle-button") ]
-            , Test.test "clicking toggle twice returns to original state" <|
-                \_ ->
-                    start
-                        |> ProgramTest.clickByTestId "theme-toggle-button"
-                        |> ProgramTest.clickByTestId "theme-toggle-button"
-                        |> ProgramTest.expectViewHas
-                            [ Selector.attribute (Attrs.testId "theme-toggle-button") ]
-            ]
-        , Test.describe "view structure"
-            [ Test.test "theme toggle has primary button class" <|
+                            [ Selector.testId "send-button" ]
+            , Test.test "send button is disabled when input is empty" <|
                 \_ ->
                     start
                         |> ProgramTest.ensureViewHas
-                            [ Selector.attribute (Attrs.testId "theme-toggle-button")
-                            , Selector.tag "button"
-                            , Selector.class "btn-primary"
+                            [ Selector.testId "send-button"
+                            , Selector.disabled True
                             ]
                         |> ProgramTest.done
-            , Test.test "example card has card class" <|
+            ]
+        , Test.describe "input functionality"
+            [ Test.test "typing in input enables send button" <|
                 \_ ->
                     start
+                        |> ProgramTest.fillInByTestId "message-input" "Hello"
                         |> ProgramTest.ensureViewHas
-                            [ Selector.attribute (Attrs.testId "example-card")
-                            , Selector.class "card"
+                            [ Selector.testId "send-button"
+                            , Selector.disabled False
                             ]
                         |> ProgramTest.done
-            , Test.test "example badge has badge-primary class" <|
+            , Test.test "clicking send clears input" <|
                 \_ ->
                     start
+                        |> ProgramTest.fillInByTestId "message-input" "Hello"
+                        |> ProgramTest.clickByTestId "send-button"
                         |> ProgramTest.ensureViewHas
-                            [ Selector.attribute (Attrs.testId "example-badge")
-                            , Selector.class "badge-primary"
-                            ]
+                            [ Selector.testId "message-input" ]
                         |> ProgramTest.done
             ]
         ]

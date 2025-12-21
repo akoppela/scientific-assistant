@@ -1,6 +1,6 @@
 tasks:
   - name: Elm formatting
-    cmd: elm-format view/src/ --yes
+    cmd: find view -type f -name '*.elm' | grep -v -e elm-stuff -e '\.elm/' | xargs elm-format --yes
   - name: Design system formatting
     cmd: cd infra/design-system && prettier --write .
   - name: Bridge formatting

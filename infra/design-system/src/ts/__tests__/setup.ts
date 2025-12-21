@@ -54,27 +54,131 @@ export function setupCssProperties(): void {
 }
 
 // Mock ResizeObserver (not available in jsdom)
-// Exposes methods for testing the most recently created instance
-export const resizeObserverMock = {
-  triggerResize: (): void => {},
-  disconnect: vi.fn(),
-};
-
 class MockResizeObserver {
   callback: ResizeObserverCallback;
   disconnect = vi.fn();
+  observe = vi.fn();
+  unobserve = vi.fn();
 
   constructor(callback: ResizeObserverCallback) {
     this.callback = callback;
-    // Expose for testing
-    resizeObserverMock.triggerResize = () => {
-      this.callback([], this);
-    };
-    resizeObserverMock.disconnect = this.disconnect;
+    allResizeObservers.push(this);
   }
 
-  observe = vi.fn();
-  unobserve = vi.fn();
+  triggerResize(): void {
+    this.callback([], this);
+  }
 }
 
+const allResizeObservers: MockResizeObserver[] = [];
+
+// Tracks all instances for testing
+export const resizeObserverMock = {
+  get instances(): MockResizeObserver[] {
+    return allResizeObservers;
+  },
+  reset: (): void => {
+    allResizeObservers.length = 0;
+  },
+};
+
 vi.stubGlobal('ResizeObserver', MockResizeObserver);
+
+// Mock IntersectionObserver (not available in jsdom)
+export const intersectionObserverMock = {
+  triggerIntersection: (_entries: IntersectionObserverEntry[]): void => {},
+  disconnect: vi.fn(),
+};
+
+class MockIntersectionObserver implements IntersectionObserver {
+  callback: IntersectionObserverCallback;
+  disconnect = vi.fn();
+  observe = vi.fn();
+  unobserve = vi.fn();
+  takeRecords = vi.fn(() => []);
+
+  readonly root: Element | Document | null = null;
+  readonly rootMargin: string = '0px';
+  readonly thresholds: readonly number[] = [0];
+
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback;
+    intersectionObserverMock.triggerIntersection = (entries: IntersectionObserverEntry[]) => {
+      this.callback(entries, this);
+    };
+    intersectionObserverMock.disconnect = this.disconnect;
+  }
+}
+
+vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
+
+// Mock ToggleEvent (not available in jsdom)
+class MockToggleEvent extends Event {
+  newState: string;
+  oldState: string;
+
+  constructor(type: string, init?: { newState?: string; oldState?: string }) {
+    super(type, { bubbles: true });
+    this.newState = init?.newState ?? '';
+    this.oldState = init?.oldState ?? '';
+  }
+}
+
+vi.stubGlobal('ToggleEvent', MockToggleEvent);
+
+// Mock Popover API (not available in jsdom)
+// Implements full browser behavior for testing open/close interactions
+Object.defineProperties(HTMLElement.prototype, {
+  popover: {
+    value: 'auto',
+    configurable: true,
+    enumerable: true,
+    writable: true,
+  },
+  showPopover: {
+    value() {
+      // display: block is important for getting tests to see the popover
+      // this is also how the popover is revealed in the browser
+      this.style.display = 'block';
+      this.setAttribute('popover-open', '');
+      const showEvent = new window.Event('show', { bubbles: true });
+      this.dispatchEvent(showEvent);
+      return undefined;
+    },
+    configurable: true,
+    writable: true,
+  },
+  hidePopover: {
+    value() {
+      // display: none is also how popovers are hidden in the browser
+      this.style.display = 'none';
+      this.removeAttribute('popover-open');
+      const hideEvent = new window.Event('hide', { bubbles: true });
+      this.dispatchEvent(hideEvent);
+      return undefined;
+    },
+    configurable: true,
+    writable: true,
+  },
+  togglePopover: {
+    value(force?: boolean) {
+      const isOpen = this.matches('[popover-open]');
+
+      if (force === undefined) {
+        if (isOpen) {
+          this.hidePopover();
+        } else {
+          this.showPopover();
+        }
+      } else if (force) {
+        this.showPopover();
+      } else {
+        this.hidePopover();
+      }
+
+      return undefined;
+    },
+    configurable: true,
+    writable: true,
+  },
+});

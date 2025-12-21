@@ -2,6 +2,8 @@
    License, v. 2.0. If a copy of the MPL was not distributed with this
    file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -}
+
+
 module NoExposingFromImports exposing (rule)
 
 {-| Forbid exposing anything from imports.
@@ -26,10 +28,11 @@ Enforces fully qualified imports for maximum clarity.
         ]
 
 Examples:
-- ✗ `import Html exposing (Html, div, text)`
-- ✗ `import Foo exposing (Bar)`
-- ✓ `import Html`
-- ✓ `import Html as H`
+
+  - ✗ `import Html exposing (Html, div, text)`
+  - ✗ `import Foo exposing (Bar)`
+  - ✓ `import Html`
+  - ✓ `import Html as H`
 
 -}
 rule : Rule

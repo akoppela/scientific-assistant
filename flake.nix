@@ -236,6 +236,12 @@
               help = "Build design system (CSS + TypeScript)";
               command = "nix build .#design-system";
             }
+            {
+              name = "cache";
+              category = "build";
+              help = "Build all packages and push to cachix";
+              command = "nix build .#proxy .#design-system .#landing .#view .#bridge .#platform && cachix push scientific-assistant ./result*";
+            }
 
             # Proxy (Cloudflare Worker)
             {

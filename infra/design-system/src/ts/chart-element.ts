@@ -8,8 +8,8 @@
  * Renders ECharts with design system theming.
  *
  * Properties:
- *   - config: ChartConfig object (from LLM)
- *   - theme: 'light' | 'dark' - triggers re-render on change
+ *   - config: ChartConfig | null - chart configuration, triggers re-render
+ *   - theme: 'light' | 'dark' - theme name, triggers re-render on change
  *
  * Elm usage:
  *   Html.node "ds-chart"
@@ -76,7 +76,7 @@ export class DsChart extends HTMLElement {
     }
   }
 
-  render(): void {
+  private render(): void {
     if (!this._config) return;
 
     if (!this._chart) {
@@ -89,4 +89,7 @@ export class DsChart extends HTMLElement {
   }
 }
 
-customElements.define('ds-chart', DsChart);
+// Auto-register custom element on import
+if (!customElements.get('ds-chart')) {
+  customElements.define('ds-chart', DsChart);
+}

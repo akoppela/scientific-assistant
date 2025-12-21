@@ -228,6 +228,8 @@ describe('ds-chart', () => {
   });
 
   it('calls chart.resize() when element is resized', () => {
+    Setup.resizeObserverMock.reset();
+
     const el = document.createElement('ds-chart');
     const config: Charts.LineChartConfig = {
       type: 'line',
@@ -238,12 +240,17 @@ describe('ds-chart', () => {
     el.config = config;
     document.body.appendChild(el);
 
-    Setup.resizeObserverMock.triggerResize();
+    const observer = Setup.resizeObserverMock.instances[0];
+    if (observer) {
+      observer.triggerResize();
+    }
 
     expect(mockResize).toHaveBeenCalled();
   });
 
   it('disconnects ResizeObserver on element removal', () => {
+    Setup.resizeObserverMock.reset();
+
     const el = document.createElement('ds-chart');
     const config: Charts.LineChartConfig = {
       type: 'line',
@@ -254,8 +261,13 @@ describe('ds-chart', () => {
     el.config = config;
     document.body.appendChild(el);
 
+    const observer = Setup.resizeObserverMock.instances[0];
+    if (!observer) {
+      throw new Error('ResizeObserver not created');
+    }
+
     el.remove();
 
-    expect(Setup.resizeObserverMock.disconnect).toHaveBeenCalled();
+    expect(observer.disconnect).toHaveBeenCalled();
   });
 });

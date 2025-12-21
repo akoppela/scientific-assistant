@@ -6,7 +6,7 @@ buildNpmPackage {
 
   src = ./.;
 
-  npmDepsHash = "sha256-lX0z/i1+eeGrxeddH2Vn0F3gRaAojWYsacSl6Td7I0M=";
+  npmDepsHash = "sha256-tCLMM5zeHYHIlstAKg6PirN3iBrFudBf7tI53ST8ffI=";
   npmFlags = [ "--ignore-scripts" ];
 
   nativeBuildInputs = runParallelTool ++ tsLintTools;

@@ -4,6 +4,7 @@
 
 import './main.css';
 
+import '@scientific-assistant/design-system';
 import * as TauriCore from '@tauri-apps/api/core';
 import * as Language from './language';
 import * as Theme from './theme';
@@ -47,10 +48,10 @@ async function initApp(): Promise<void> {
   const savedLanguage = Language.load();
 
   // Apply preferences to document (only if previously saved)
-  if (savedTheme) {
+  if (savedTheme && Theme.isTheme(savedTheme)) {
     Theme.set(savedTheme);
   }
-  if (savedLanguage) {
+  if (savedLanguage && Language.isLanguage(savedLanguage)) {
     Language.set(savedLanguage);
   }
 
@@ -64,12 +65,21 @@ async function initApp(): Promise<void> {
   });
 
   // Subscribe to preference changes
-  app.ports.setTheme.subscribe(Theme.set);
-  app.ports.setLanguage.subscribe(Language.set);
+  app.ports.setTheme.subscribe((theme: string) => {
+    if (Theme.isTheme(theme)) {
+      Theme.set(theme);
+    }
+  });
+  app.ports.setLanguage.subscribe((lang: string) => {
+    if (Language.isLanguage(lang)) {
+      Language.set(lang);
+    }
+  });
 
   // Test Tauri command
-  const greeting = await TauriCore.invoke<string>('greet', { name: 'Elm' });
-  console.log(greeting);
+  TauriCore.invoke<string>('greet', { name: 'Elm' }).then(greeting => {
+    console.log(greeting);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', initApp);

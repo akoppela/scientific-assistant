@@ -10,8 +10,8 @@
     </script>
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body>
-    <nav class="docs-nav">
+  <body class="flex flex-col h-screen">
+    <nav class="app-header">
       <a href="index.html">Home</a>
       <a href="design-system.html" class="active">Design System</a>
       <button id="theme-toggle" class="btn btn-icon btn-ghost ml-auto" aria-label="Toggle theme">
@@ -32,969 +32,1005 @@
       </button>
     </nav>
 
-    <main class="container mx-auto px-8 py-12 max-w-6xl flex flex-col gap-gutter-lg">
-      <h1 class="text-4xl font-semibold">Design System</h1>
+    <main class="flex-1 overflow-y-auto">
+      <div class="container mx-auto px-8 py-12 max-w-6xl flex flex-col gap-gutter-lg">
+        <h1 class="text-4xl font-semibold">Design System</h1>
 
-      <!-- Colors -->
-      <section class="doc-section flex flex-col gap-gutter-sm">
-        <h2 id="colors" class="text-2xl font-semibold">
-          <a href="#colors" class="header-anchor">Color Palette</a>
-        </h2>
-        <p class="text-sm">
-          All colors have corresponding utility classes (<code>.bg-*</code>, <code>.text-*</code>,
-          <code>.border-*</code>) that adapt to light/dark mode
-        </p>
-
-        <h3 id="backgrounds" class="text-xl font-semibold">
-          <a href="#backgrounds" class="header-anchor">Backgrounds</a>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="bg-background h-24 rounded-lg"></div>
-            <p class="text-sm font-mono">--color-bg</p>
-            <p class="text-xs text-tertiary">.bg-background</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="bg-surface h-24 rounded-lg"></div>
-            <p class="text-sm font-mono">--color-bg-surface</p>
-            <p class="text-xs text-tertiary">.bg-surface</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="bg-muted h-24 rounded-lg"></div>
-            <p class="text-sm font-mono">--color-bg-muted</p>
-            <p class="text-xs text-tertiary">.bg-muted</p>
-          </div>
-        </div>
-
-        <h3 id="primary-accent" class="text-xl font-semibold">
-          <a href="#primary-accent" class="header-anchor">Primary Accent</a>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="bg-primary h-24 rounded-lg"></div>
-            <p class="text-sm font-mono">--color-primary</p>
-            <p class="text-xs text-tertiary">.bg-primary, .text-primary</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="bg-primary-hover h-24 rounded-lg"></div>
-            <p class="text-sm font-mono">--color-primary-hover</p>
-            <p class="text-xs text-tertiary">.bg-primary-hover</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="bg-primary-subtle h-24 rounded-lg"></div>
-            <p class="text-sm font-mono">--color-primary-subtle</p>
-            <p class="text-xs text-tertiary">.bg-primary-subtle</p>
-          </div>
-        </div>
-
-        <h3 id="text-colors" class="text-xl font-semibold">
-          <a href="#text-colors" class="header-anchor">Text Colors</a>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-text)"></div>
-            <p class="text-sm font-mono">--color-text</p>
-            <p class="text-xs text-tertiary">.text-foreground</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-text-secondary)"></div>
-            <p class="text-sm font-mono">--color-text-secondary</p>
-            <p class="text-xs text-tertiary">.text-secondary</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-text-muted)"></div>
-            <p class="text-sm font-mono">--color-text-muted</p>
-            <p class="text-xs text-tertiary">.text-tertiary</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-text-inverse)"></div>
-            <p class="text-sm font-mono">--color-text-inverse</p>
-            <p class="text-xs text-tertiary">.text-inverse</p>
-          </div>
-        </div>
-
-        <h3 id="borders" class="text-xl font-semibold">
-          <a href="#borders" class="header-anchor">Borders</a>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-border)"></div>
-            <p class="text-sm font-mono">--color-border</p>
-            <p class="text-xs text-tertiary">.border-default</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-border-strong)"></div>
-            <p class="text-sm font-mono">--color-border-strong</p>
-            <p class="text-xs text-tertiary">.border-strong</p>
-          </div>
-        </div>
-
-        <h3 id="semantic-colors" class="text-xl font-semibold">
-          <a href="#semantic-colors" class="header-anchor">Semantic Colors</a>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-error)"></div>
-            <p class="text-sm font-mono">--color-error</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-error-subtle)"></div>
-            <p class="text-sm font-mono">--color-error-subtle</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-success)"></div>
-            <p class="text-sm font-mono">--color-success</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-success-subtle)"></div>
-            <p class="text-sm font-mono">--color-success-subtle</p>
-          </div>
-        </div>
-
-        <h3 id="message-bubbles" class="text-xl font-semibold">
-          <a href="#message-bubbles" class="header-anchor">Message Bubbles</a>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-bubble-user)"></div>
-            <p class="text-sm font-mono">--color-bubble-user</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg" style="background-color: var(--color-bubble-assistant)"></div>
-            <p class="text-sm font-mono">--color-bubble-assistant</p>
-          </div>
-        </div>
-
-        <h3 id="data-visualization" class="text-xl font-semibold">
-          <a href="#data-visualization" class="header-anchor">Data Visualization</a>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg data-1"></div>
-            <p class="text-sm font-mono">--color-data-1</p>
-            <p class="text-xs text-tertiary">.data-1</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg data-2"></div>
-            <p class="text-sm font-mono">--color-data-2</p>
-            <p class="text-xs text-tertiary">.data-2</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg data-3"></div>
-            <p class="text-sm font-mono">--color-data-3</p>
-            <p class="text-xs text-tertiary">.data-3</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg data-4"></div>
-            <p class="text-sm font-mono">--color-data-4</p>
-            <p class="text-xs text-tertiary">.data-4</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg data-5"></div>
-            <p class="text-sm font-mono">--color-data-5</p>
-            <p class="text-xs text-tertiary">.data-5</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg data-6"></div>
-            <p class="text-sm font-mono">--color-data-6</p>
-            <p class="text-xs text-tertiary">.data-6</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg data-7"></div>
-            <p class="text-sm font-mono">--color-data-7</p>
-            <p class="text-xs text-tertiary">.data-7</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg data-8"></div>
-            <p class="text-sm font-mono">--color-data-8</p>
-            <p class="text-xs text-tertiary">.data-8</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <div class="h-24 rounded-lg data-9"></div>
-            <p class="text-sm font-mono">--color-data-9</p>
-            <p class="text-xs text-tertiary">.data-9</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Typography -->
-      <section class="doc-section flex flex-col gap-gutter-sm">
-        <h2 id="typography" class="text-2xl font-semibold">
-          <a href="#typography" class="header-anchor">Typography</a>
-        </h2>
-        <div class="card flex flex-col gap-gutter-sm">
-          <div class="flex flex-col gap-gutter-xs">
-            <p class="text-sm text-secondary">Display (36px, 600)</p>
-            <p class="text-4xl font-semibold">Scientific Assistant</p>
-          </div>
-          <div class="flex flex-col gap-gutter-xs">
-            <p class="text-sm text-secondary">Heading 1 (24px, 600)</p>
-            <h1 class="text-2xl font-semibold">First Level Heading</h1>
-          </div>
-          <div class="flex flex-col gap-gutter-xs">
-            <p class="text-sm text-secondary">Heading 2 (18px, 600)</p>
-            <h2 class="text-xl font-semibold">Second Level Heading</h2>
-          </div>
-          <div class="flex flex-col gap-gutter-xs">
-            <p class="text-sm text-secondary">Body (15px, 400)</p>
-            <p>
-              Body text for paragraphs and message content. Supports Cyrillic and Latin characters using the Nunito
-              font.
-            </p>
-          </div>
-          <div class="flex flex-col gap-gutter-xs">
-            <p class="text-sm text-secondary">Small (12px, 400)</p>
-            <p class="text-xs">Small text for captions and supporting information</p>
-          </div>
-          <div class="flex flex-col gap-gutter-xs">
-            <p class="text-sm text-secondary">Mono (12px, 400)</p>
-            <code class="font-mono text-xs">const code = "Monospace font for code";</code>
-          </div>
-        </div>
-      </section>
-
-      <!-- Grid System -->
-      <section class="doc-section flex flex-col gap-gutter-sm">
-        <h2 id="grid-system" class="text-2xl font-semibold">
-          <a href="#grid-system" class="header-anchor">Grid System</a>
-        </h2>
-        <p>12-column CSS Grid system with responsive breakpoints. Based on 72px column unit with 24px gutters.</p>
-
-        <h3 id="container" class="text-xl font-semibold">
-          <a href="#container" class="header-anchor">Container</a>
-        </h3>
-        <p class="text-sm">Max-width: 1440px, Padding: 24px (mobile) / 48px (desktop)</p>
-        <div class="card">
-          <div class="container bg-primary/10 py-4">
-            <p class="text-sm text-center">Container content</p>
-          </div>
-        </div>
-
-        <h3 id="equal-columns" class="text-xl font-semibold">
-          <a href="#equal-columns" class="header-anchor">Equal Columns</a>
-        </h3>
-        <p class="text-sm">Two equal columns (gap-gutter = 24px)</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-          <div class="card text-center">Column 1</div>
-          <div class="card text-center">Column 2</div>
-        </div>
-
-        <p class="text-sm">Three equal columns (gap-gutter = 24px)</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-          <div class="card text-center">Column 1</div>
-          <div class="card text-center">Column 2</div>
-          <div class="card text-center">Column 3</div>
-        </div>
-
-        <p class="text-sm">Four equal columns (gap-gutter = 24px)</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
-          <div class="card text-center text-xs">Column 1</div>
-          <div class="card text-center text-xs">Column 2</div>
-          <div class="card text-center text-xs">Column 3</div>
-          <div class="card text-center text-xs">Column 4</div>
-        </div>
-
-        <h3 id="gutter-variants" class="text-xl font-semibold">
-          <a href="#gutter-variants" class="header-anchor">Gutter Variants</a>
-        </h3>
-        <p class="text-sm">Small gutter (gap-gutter-sm = 12px)</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-sm">
-          <div class="card text-center text-xs">Card 1</div>
-          <div class="card text-center text-xs">Card 2</div>
-          <div class="card text-center text-xs">Card 3</div>
-        </div>
-
-        <p class="text-sm">Large gutter (gap-gutter-lg = 30px)</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-lg">
-          <div class="card text-center text-xs">Card 1</div>
-          <div class="card text-center text-xs">Card 2</div>
-          <div class="card text-center text-xs">Card 3</div>
-        </div>
-
-        <h3 id="breakpoints" class="text-xl font-semibold">
-          <a href="#breakpoints" class="header-anchor">Breakpoints</a>
-        </h3>
-        <div class="card markdown">
-          <div class="overflow-x-auto">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Min-width</th>
-                  <th>Device</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>sm</code></td>
-                  <td>640px</td>
-                  <td>Mobile landscape</td>
-                </tr>
-                <tr>
-                  <td><code>md</code></td>
-                  <td>768px</td>
-                  <td>Tablet</td>
-                </tr>
-                <tr>
-                  <td><code>lg</code></td>
-                  <td>1024px</td>
-                  <td>Laptop</td>
-                </tr>
-                <tr>
-                  <td><code>xl</code></td>
-                  <td>1280px</td>
-                  <td>Desktop</td>
-                </tr>
-                <tr>
-                  <td><code>2xl</code></td>
-                  <td>1536px</td>
-                  <td>Large desktop</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- Elevation System -->
-      <section class="doc-section flex flex-col gap-gutter-sm">
-        <h2 id="elevation-system" class="text-2xl font-semibold">
-          <a href="#elevation-system" class="header-anchor">Elevation System</a>
-        </h2>
-        <p>
-          We use elevation (shadows + z-index), not 1px borders, for visual separation. Borders are ONLY for semantic
-          emphasis (accent bars).
-        </p>
-
-        <h3 id="shadows" class="text-xl font-semibold">
-          <a href="#shadows" class="header-anchor">Shadows</a>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-          <div class="bg-surface rounded-lg p-6 shadow-sm flex flex-col gap-gutter-xs">
-            <p class="text-sm font-mono">--shadow-sm</p>
-            <p class="text-xs text-tertiary">.shadow-sm</p>
-            <p class="text-xs text-tertiary">Cards, elevated surfaces</p>
-          </div>
-          <div class="bg-surface rounded-lg p-6 shadow-md flex flex-col gap-gutter-xs">
-            <p class="text-sm font-mono">--shadow-md</p>
-            <p class="text-xs text-tertiary">.shadow-md</p>
-            <p class="text-xs text-tertiary">Dropdowns, popovers</p>
-          </div>
-          <div class="bg-surface rounded-lg p-6 shadow-lg flex flex-col gap-gutter-xs">
-            <p class="text-sm font-mono">--shadow-lg</p>
-            <p class="text-xs text-tertiary">.shadow-lg</p>
-            <p class="text-xs text-tertiary">Modals, dialogs</p>
-          </div>
-        </div>
-
-        <h3 id="z-index-scale" class="text-xl font-semibold">
-          <a href="#z-index-scale" class="header-anchor">Z-Index Scale</a>
-        </h3>
-        <div class="card markdown">
-          <div class="overflow-x-auto">
-            <table>
-              <thead>
-                <tr>
-                  <th>Token</th>
-                  <th>Value</th>
-                  <th>Usage</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>--z-base</code></td>
-                  <td>0</td>
-                  <td>Default layer - page content</td>
-                </tr>
-                <tr>
-                  <td><code>--z-elevated</code></td>
-                  <td>100</td>
-                  <td>Cards, surfaces</td>
-                </tr>
-                <tr>
-                  <td><code>--z-sticky</code></td>
-                  <td>200</td>
-                  <td>Sticky headers</td>
-                </tr>
-                <tr>
-                  <td><code>--z-dropdown</code></td>
-                  <td>300</td>
-                  <td>Dropdowns, popovers</td>
-                </tr>
-                <tr>
-                  <td><code>--z-overlay</code></td>
-                  <td>400</td>
-                  <td>Modal backdrops</td>
-                </tr>
-                <tr>
-                  <td><code>--z-modal</code></td>
-                  <td>500</td>
-                  <td>Modal dialogs</td>
-                </tr>
-                <tr>
-                  <td><code>--z-toast</code></td>
-                  <td>600</td>
-                  <td>Toast notifications</td>
-                </tr>
-                <tr>
-                  <td><code>--z-tooltip</code></td>
-                  <td>700</td>
-                  <td>Tooltips</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- Animations -->
-      <section class="doc-section flex flex-col gap-gutter-sm">
-        <h2 id="animations" class="text-2xl font-semibold">
-          <a href="#animations" class="header-anchor">Animation Library</a>
-        </h2>
-        <p>Reusable animations for entrance, exit, and feedback. Click buttons to preview.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
-          <div class="card flex flex-col items-center gap-gutter-sm">
-            <div id="fade-demo" class="w-16 h-16 bg-primary rounded-lg"></div>
-            <p class="text-sm font-mono">fade-in / fade-out</p>
-            <p class="text-xs text-tertiary">Modals, overlays, toasts</p>
-            <div class="flex gap-gutter-xs">
-              <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('fade-demo', 'animate-fade-in')">
-                In
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('fade-demo', 'animate-fade-out')">
-                Out
-              </button>
-            </div>
-          </div>
-
-          <div class="card flex flex-col items-center gap-gutter-sm">
-            <div id="scale-demo" class="w-16 h-16 bg-primary rounded-lg"></div>
-            <p class="text-sm font-mono">scale-in / scale-out</p>
-            <p class="text-xs text-tertiary">Dropdowns, popovers</p>
-            <div class="flex gap-gutter-xs">
-              <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('scale-demo', 'animate-scale-in')">
-                In
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('scale-demo', 'animate-scale-out')">
-                Out
-              </button>
-            </div>
-          </div>
-
-          <div class="card flex flex-col items-center gap-gutter-sm">
-            <div id="shake-demo" class="w-16 h-16 bg-primary rounded-lg"></div>
-            <p class="text-sm font-mono">shake</p>
-            <p class="text-xs text-tertiary">Form validation error</p>
-            <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('shake-demo', 'animate-shake')">
-              Trigger
-            </button>
-          </div>
-
-          <div class="card flex flex-col items-center gap-gutter-sm">
-            <div id="slide-demo" class="w-16 h-16 bg-primary rounded-lg"></div>
-            <p class="text-sm font-mono">slide-up</p>
-            <p class="text-xs text-tertiary">Message entrance</p>
-            <button class="btn btn-secondary btn-sm" onclick="triggerSlideUp('slide-demo')">Trigger</button>
-          </div>
-
-          <div class="card flex flex-col items-center gap-gutter-sm">
-            <div
-              class="w-16 h-16 bg-primary rounded-lg"
-              style="animation: pulse var(--duration-animation-slow) ease-in-out infinite"
-            ></div>
-            <p class="text-sm font-mono">pulse</p>
-            <p class="text-xs text-tertiary">Thinking indicator</p>
-          </div>
-
-          <div class="card flex flex-col items-center gap-gutter-sm">
-            <div class="w-16 h-16 bg-primary rounded-lg animate-spin"></div>
-            <p class="text-sm font-mono">spin</p>
-            <p class="text-xs text-tertiary">Loading spinner</p>
-          </div>
-        </div>
-
-        <h3 id="animation-tokens" class="text-xl font-semibold">
-          <a href="#animation-tokens" class="header-anchor">Tokens</a>
-        </h3>
-        <div class="card markdown">
-          <div class="overflow-x-auto">
-            <table>
-              <thead>
-                <tr>
-                  <th>Token</th>
-                  <th>Value</th>
-                  <th>Usage</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>--duration-animation-fast</code></td>
-                  <td>300ms</td>
-                  <td>Entrance/exit, feedback</td>
-                </tr>
-                <tr>
-                  <td><code>--duration-animation-slow</code></td>
-                  <td>1.5s</td>
-                  <td>Continuous (pulse, loading)</td>
-                </tr>
-                <tr>
-                  <td><code>--distance-slide</code></td>
-                  <td>9px</td>
-                  <td>Slide/shake distance</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- Icons -->
-      <section class="doc-section flex flex-col gap-gutter-sm">
-        <h2 id="icons" class="text-2xl font-semibold">
-          <a href="#icons" class="header-anchor">Icons</a>
-        </h2>
-        <p class="text-text-secondary">
-          Heroicons (outline) with three sizes: Small (15px), Medium (18px), Large (24px)
-        </p>
-        <div class="grid grid-cols-4 md:grid-cols-8 gap-gutter">
-          <div class="card flex flex-col items-center gap-gutter-xs">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-              />
-            </svg>
-            <span class="text-xs text-center">send</span>
-          </div>
-          <div class="card flex flex-col items-center gap-gutter-xs">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"
-              />
-            </svg>
-            <span class="text-xs text-center">attach</span>
-          </div>
-          <div class="card flex flex-col items-center gap-gutter-xs">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
-              />
-            </svg>
-            <span class="text-xs text-center">sun</span>
-          </div>
-          <div class="card flex flex-col items-center gap-gutter-xs">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
-              />
-            </svg>
-            <span class="text-xs text-center">moon</span>
-          </div>
-          <div class="card flex flex-col items-center gap-gutter-xs">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-              />
-            </svg>
-            <span class="text-xs text-center">trash</span>
-          </div>
-          <div class="card flex flex-col items-center gap-gutter-xs">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
-            <span class="text-xs text-center">check</span>
-          </div>
-          <div class="card flex flex-col items-center gap-gutter-xs">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            <span class="text-xs text-center">plus</span>
-          </div>
-          <div class="card flex flex-col items-center gap-gutter-xs">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-              />
-            </svg>
-            <span class="text-xs text-center">search</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Components -->
-      <section class="doc-section flex flex-col gap-gutter-sm">
-        <h2 id="components" class="text-2xl font-semibold">
-          <a href="#components" class="header-anchor">Components</a>
-        </h2>
-
-        <h3 id="buttons" class="text-xl font-semibold">
-          <a href="#buttons" class="header-anchor">Buttons</a>
-        </h3>
-        <div class="card flex flex-wrap gap-gutter-sm">
-          <button class="btn btn-primary">Primary</button>
-          <button class="btn btn-secondary">Secondary</button>
-          <button class="btn btn-ghost">Ghost</button>
-          <button class="btn btn-icon btn-primary">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-          </button>
-          <button class="btn btn-primary" disabled>Disabled</button>
-        </div>
-        <div class="card flex flex-wrap gap-gutter-sm">
-          <button class="btn btn-primary btn-sm">Primary Small</button>
-          <button class="btn btn-secondary btn-sm">Secondary Small</button>
-          <button class="btn btn-ghost btn-sm">Ghost Small</button>
-        </div>
-
-        <h3 id="input-fields" class="text-xl font-semibold">
-          <a href="#input-fields" class="header-anchor">Input Fields</a>
-        </h3>
-        <div class="card flex flex-col gap-gutter-sm">
-          <input type="text" class="input" placeholder="Enter text..." />
-          <textarea class="input textarea" placeholder="Multiline text..."></textarea>
-          <input type="text" class="input" disabled value="Disabled" />
-        </div>
-
-        <h3 id="checkboxes" class="text-xl font-semibold">
-          <a href="#checkboxes" class="header-anchor">Checkboxes</a>
-        </h3>
-        <div class="card flex flex-wrap gap-gutter">
-          <label class="checkbox">
-            <input type="checkbox" class="checkbox-input" />
-            <span class="checkbox-label">Unchecked</span>
-          </label>
-          <label class="checkbox">
-            <input type="checkbox" class="checkbox-input" checked />
-            <span class="checkbox-label">Checked</span>
-          </label>
-          <label class="checkbox">
-            <input type="checkbox" class="checkbox-input" disabled />
-            <span class="checkbox-label">Disabled</span>
-          </label>
-          <label class="checkbox">
-            <input type="checkbox" class="checkbox-input input-error" />
-            <span class="checkbox-label">Error state</span>
-          </label>
-        </div>
-
-        <h3 id="radio-buttons" class="text-xl font-semibold">
-          <a href="#radio-buttons" class="header-anchor">Radio Buttons</a>
-        </h3>
-        <div class="card flex flex-wrap gap-gutter">
-          <label class="radio">
-            <input type="radio" name="demo-radio" class="radio-input" />
-            <span class="radio-label">Option A</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="demo-radio" class="radio-input" checked />
-            <span class="radio-label">Option B</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="demo-radio-disabled" class="radio-input" disabled />
-            <span class="radio-label">Disabled</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="demo-radio-error" class="radio-input input-error" />
-            <span class="radio-label">Error state</span>
-          </label>
-        </div>
-
-        <h3 id="range-sliders" class="text-xl font-semibold">
-          <a href="#range-sliders" class="header-anchor">Range Sliders</a>
-        </h3>
-        <div class="card flex flex-col gap-gutter-sm">
-          <input type="range" class="range" min="0" max="100" value="50" />
-          <input type="range" class="range" min="0" max="100" value="25" disabled />
-        </div>
-
-        <h3 id="selects" class="text-xl font-semibold">
-          <a href="#selects" class="header-anchor">Select Dropdowns</a>
-        </h3>
-        <div class="card flex flex-col gap-gutter-sm">
-          <select class="select">
-            <option value="">Select an option...</option>
-            <option value="1">Option 1</option>
-            <option value="2">Option 2</option>
-            <option value="3">Option 3</option>
-          </select>
-          <select class="select" disabled>
-            <option>Disabled select</option>
-          </select>
-          <select class="select input-error">
-            <option value="">Required field...</option>
-          </select>
-        </div>
-
-        <h3 id="form-validation" class="text-xl font-semibold">
-          <a href="#form-validation" class="header-anchor">Form Validation</a>
-        </h3>
-        <div class="card flex flex-col gap-gutter-sm">
-          <div class="form-group">
-            <label class="form-label form-label-required">Email</label>
-            <input type="email" class="input input-error" value="invalid-email" />
-            <p class="form-error">Please enter a valid email address</p>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Username</label>
-            <input type="text" class="input input-success" value="valid_user" />
-            <p class="form-success">Username is available</p>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Password</label>
-            <input type="password" class="input" placeholder="Enter password" />
-            <p class="form-hint">At least 8 characters with one number</p>
-          </div>
-        </div>
-
-        <h3 id="cards" class="text-xl font-semibold">
-          <a href="#cards" class="header-anchor">Cards</a>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-          <div class="card flex flex-col gap-gutter-xs">
-            <h4 class="font-semibold">Card Component</h4>
-            <p class="text-sm text-secondary">Container for grouping related content with elevation</p>
-          </div>
-          <div class="card flex flex-col gap-gutter-xs">
-            <h4 class="font-semibold">Another Card</h4>
-            <p class="text-sm text-secondary">Uses .bg-surface, .rounded-lg, .shadow-sm, .p-6</p>
-          </div>
-        </div>
-
-        <h3 id="badges" class="text-xl font-semibold">
-          <a href="#badges" class="header-anchor">Badges</a>
-        </h3>
-        <div class="flex flex-wrap gap-gutter-sm">
-          <span class="badge">Default Badge</span>
-          <span class="badge badge-primary">Primary Badge</span>
-          <span class="badge">Status: Active</span>
-          <span class="badge badge-primary">v1.0.0</span>
-        </div>
-
-        <h3 id="messages" class="text-xl font-semibold">
-          <a href="#messages" class="header-anchor">Messages</a>
-        </h3>
-        <div class="flex flex-col gap-gutter-sm">
-          <div class="message message-user">
-            <p>Hello! This is a user message</p>
-          </div>
-          <div class="message message-assistant">
-            <p>This is an assistant response. Note the teal accent bar on the left and soft background.</p>
-          </div>
-          <div class="thinking">
-            <div class="thinking-dot"></div>
-            <span>Thinking...</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Markdown -->
-      <section class="doc-section flex flex-col gap-gutter-sm">
-        <h2 id="markdown" class="text-2xl font-semibold">
-          <a href="#markdown" class="header-anchor">Markdown</a>
-        </h2>
-        <p class="text-text-secondary">
-          Styling for rendered markdown content (scientific papers, AI responses, documentation)
-        </p>
-
-        <div class="card markdown">
-          <h1>Heading 1 (24px)</h1>
-          <p>
-            Paragraph with <strong>bold</strong>, <em>italic</em>, <del>strikethrough</del>, and <a href="#">link</a>.
-            Inline code: <code>const result = calculate(3, 6);</code>
+        <!-- Colors -->
+        <section class="doc-section flex flex-col gap-gutter-sm">
+          <h2 id="colors" class="text-2xl font-semibold">
+            <a href="#colors" class="header-anchor">Color Palette</a>
+          </h2>
+          <p class="text-sm">
+            All colors have corresponding utility classes (<code>.bg-*</code>, <code>.text-*</code>,
+            <code>.border-*</code>) that adapt to light/dark mode
           </p>
 
-          <h2>Heading 2 (18px)</h2>
-          <p>Comfortable line height for extended reading of scientific content.</p>
+          <h3 id="backgrounds" class="text-xl font-semibold">
+            <a href="#backgrounds" class="header-anchor">Backgrounds</a>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="bg-background h-24 rounded-lg"></div>
+              <p class="text-sm font-mono">--color-bg</p>
+              <p class="text-xs text-tertiary">.bg-background</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="bg-surface h-24 rounded-lg"></div>
+              <p class="text-sm font-mono">--color-bg-surface</p>
+              <p class="text-xs text-tertiary">.bg-surface</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="bg-muted h-24 rounded-lg"></div>
+              <p class="text-sm font-mono">--color-bg-muted</p>
+              <p class="text-xs text-tertiary">.bg-muted</p>
+            </div>
+          </div>
 
-          <h3>Heading 3 (15px)</h3>
-          <p>Smallest heading level for subsections.</p>
+          <h3 id="primary-accent" class="text-xl font-semibold">
+            <a href="#primary-accent" class="header-anchor">Primary Accent</a>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="bg-primary h-24 rounded-lg"></div>
+              <p class="text-sm font-mono">--color-primary</p>
+              <p class="text-xs text-tertiary">.bg-primary, .text-primary</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="bg-primary-hover h-24 rounded-lg"></div>
+              <p class="text-sm font-mono">--color-primary-hover</p>
+              <p class="text-xs text-tertiary">.bg-primary-hover</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="bg-primary-subtle h-24 rounded-lg"></div>
+              <p class="text-sm font-mono">--color-primary-subtle</p>
+              <p class="text-xs text-tertiary">.bg-primary-subtle</p>
+            </div>
+          </div>
 
-          <h2>Lists</h2>
-          <ul>
-            <li>First item in the list</li>
-            <li>Second item with longer content</li>
-            <li>Third item</li>
-          </ul>
+          <h3 id="text-colors" class="text-xl font-semibold">
+            <a href="#text-colors" class="header-anchor">Text Colors</a>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-text)"></div>
+              <p class="text-sm font-mono">--color-text</p>
+              <p class="text-xs text-tertiary">.text-foreground</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-text-secondary)"></div>
+              <p class="text-sm font-mono">--color-text-secondary</p>
+              <p class="text-xs text-tertiary">.text-secondary</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-text-muted)"></div>
+              <p class="text-sm font-mono">--color-text-muted</p>
+              <p class="text-xs text-tertiary">.text-tertiary</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-text-inverse)"></div>
+              <p class="text-sm font-mono">--color-text-inverse</p>
+              <p class="text-xs text-tertiary">.text-inverse</p>
+            </div>
+          </div>
 
-          <ol>
-            <li>First numbered item</li>
-            <li>Second numbered item</li>
-            <li>Third numbered item</li>
-          </ol>
+          <h3 id="borders" class="text-xl font-semibold">
+            <a href="#borders" class="header-anchor">Borders</a>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-border)"></div>
+              <p class="text-sm font-mono">--color-border</p>
+              <p class="text-xs text-tertiary">.border-default</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-border-strong)"></div>
+              <p class="text-sm font-mono">--color-border-strong</p>
+              <p class="text-xs text-tertiary">.border-strong</p>
+            </div>
+          </div>
 
-          <h2>Code Block</h2>
-          <pre><code>function calculateSum(a, b) {
+          <h3 id="semantic-colors" class="text-xl font-semibold">
+            <a href="#semantic-colors" class="header-anchor">Semantic Colors</a>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-error)"></div>
+              <p class="text-sm font-mono">--color-error</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-error-subtle)"></div>
+              <p class="text-sm font-mono">--color-error-subtle</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-success)"></div>
+              <p class="text-sm font-mono">--color-success</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-success-subtle)"></div>
+              <p class="text-sm font-mono">--color-success-subtle</p>
+            </div>
+          </div>
+
+          <h3 id="message-bubbles" class="text-xl font-semibold">
+            <a href="#message-bubbles" class="header-anchor">Message Bubbles</a>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-bubble-user)"></div>
+              <p class="text-sm font-mono">--color-bubble-user</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg" style="background-color: var(--color-bubble-assistant)"></div>
+              <p class="text-sm font-mono">--color-bubble-assistant</p>
+            </div>
+          </div>
+
+          <h3 id="data-visualization" class="text-xl font-semibold">
+            <a href="#data-visualization" class="header-anchor">Data Visualization</a>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg data-1"></div>
+              <p class="text-sm font-mono">--color-data-1</p>
+              <p class="text-xs text-tertiary">.data-1</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg data-2"></div>
+              <p class="text-sm font-mono">--color-data-2</p>
+              <p class="text-xs text-tertiary">.data-2</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg data-3"></div>
+              <p class="text-sm font-mono">--color-data-3</p>
+              <p class="text-xs text-tertiary">.data-3</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg data-4"></div>
+              <p class="text-sm font-mono">--color-data-4</p>
+              <p class="text-xs text-tertiary">.data-4</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg data-5"></div>
+              <p class="text-sm font-mono">--color-data-5</p>
+              <p class="text-xs text-tertiary">.data-5</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg data-6"></div>
+              <p class="text-sm font-mono">--color-data-6</p>
+              <p class="text-xs text-tertiary">.data-6</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg data-7"></div>
+              <p class="text-sm font-mono">--color-data-7</p>
+              <p class="text-xs text-tertiary">.data-7</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg data-8"></div>
+              <p class="text-sm font-mono">--color-data-8</p>
+              <p class="text-xs text-tertiary">.data-8</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <div class="h-24 rounded-lg data-9"></div>
+              <p class="text-sm font-mono">--color-data-9</p>
+              <p class="text-xs text-tertiary">.data-9</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="doc-section flex flex-col gap-gutter-sm">
+          <h2 id="typography" class="text-2xl font-semibold">
+            <a href="#typography" class="header-anchor">Typography</a>
+          </h2>
+          <div class="card flex flex-col gap-gutter-sm">
+            <div class="flex flex-col gap-gutter-xs">
+              <p class="text-sm text-secondary">Display (36px, 600)</p>
+              <p class="text-4xl font-semibold">Scientific Assistant</p>
+            </div>
+            <div class="flex flex-col gap-gutter-xs">
+              <p class="text-sm text-secondary">Heading 1 (24px, 600)</p>
+              <h1 class="text-2xl font-semibold">First Level Heading</h1>
+            </div>
+            <div class="flex flex-col gap-gutter-xs">
+              <p class="text-sm text-secondary">Heading 2 (18px, 600)</p>
+              <h2 class="text-xl font-semibold">Second Level Heading</h2>
+            </div>
+            <div class="flex flex-col gap-gutter-xs">
+              <p class="text-sm text-secondary">Body (15px, 400)</p>
+              <p>
+                Body text for paragraphs and message content. Supports Cyrillic and Latin characters using the Nunito
+                font.
+              </p>
+            </div>
+            <div class="flex flex-col gap-gutter-xs">
+              <p class="text-sm text-secondary">Small (12px, 400)</p>
+              <p class="text-xs">Small text for captions and supporting information</p>
+            </div>
+            <div class="flex flex-col gap-gutter-xs">
+              <p class="text-sm text-secondary">Mono (12px, 400)</p>
+              <code class="font-mono text-xs">const code = "Monospace font for code";</code>
+            </div>
+          </div>
+        </section>
+
+        <!-- Grid System -->
+        <section class="doc-section flex flex-col gap-gutter-sm">
+          <h2 id="grid-system" class="text-2xl font-semibold">
+            <a href="#grid-system" class="header-anchor">Grid System</a>
+          </h2>
+          <p>12-column CSS Grid system with responsive breakpoints. Based on 72px column unit with 24px gutters.</p>
+
+          <h3 id="container" class="text-xl font-semibold">
+            <a href="#container" class="header-anchor">Container</a>
+          </h3>
+          <p class="text-sm">Max-width: 1440px, Padding: 24px (mobile) / 48px (desktop)</p>
+          <div class="card">
+            <div class="container bg-primary/10 py-4">
+              <p class="text-sm text-center">Container content</p>
+            </div>
+          </div>
+
+          <h3 id="equal-columns" class="text-xl font-semibold">
+            <a href="#equal-columns" class="header-anchor">Equal Columns</a>
+          </h3>
+          <p class="text-sm">Two equal columns (gap-gutter = 24px)</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div class="card text-center">Column 1</div>
+            <div class="card text-center">Column 2</div>
+          </div>
+
+          <p class="text-sm">Three equal columns (gap-gutter = 24px)</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            <div class="card text-center">Column 1</div>
+            <div class="card text-center">Column 2</div>
+            <div class="card text-center">Column 3</div>
+          </div>
+
+          <p class="text-sm">Four equal columns (gap-gutter = 24px)</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+            <div class="card text-center text-xs">Column 1</div>
+            <div class="card text-center text-xs">Column 2</div>
+            <div class="card text-center text-xs">Column 3</div>
+            <div class="card text-center text-xs">Column 4</div>
+          </div>
+
+          <h3 id="gutter-variants" class="text-xl font-semibold">
+            <a href="#gutter-variants" class="header-anchor">Gutter Variants</a>
+          </h3>
+          <p class="text-sm">Small gutter (gap-gutter-sm = 12px)</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-sm">
+            <div class="card text-center text-xs">Card 1</div>
+            <div class="card text-center text-xs">Card 2</div>
+            <div class="card text-center text-xs">Card 3</div>
+          </div>
+
+          <p class="text-sm">Large gutter (gap-gutter-lg = 30px)</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-lg">
+            <div class="card text-center text-xs">Card 1</div>
+            <div class="card text-center text-xs">Card 2</div>
+            <div class="card text-center text-xs">Card 3</div>
+          </div>
+
+          <h3 id="breakpoints" class="text-xl font-semibold">
+            <a href="#breakpoints" class="header-anchor">Breakpoints</a>
+          </h3>
+          <div class="card markdown">
+            <div class="overflow-x-auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Min-width</th>
+                    <th>Device</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>sm</code></td>
+                    <td>640px</td>
+                    <td>Mobile landscape</td>
+                  </tr>
+                  <tr>
+                    <td><code>md</code></td>
+                    <td>768px</td>
+                    <td>Tablet</td>
+                  </tr>
+                  <tr>
+                    <td><code>lg</code></td>
+                    <td>1024px</td>
+                    <td>Laptop</td>
+                  </tr>
+                  <tr>
+                    <td><code>xl</code></td>
+                    <td>1280px</td>
+                    <td>Desktop</td>
+                  </tr>
+                  <tr>
+                    <td><code>2xl</code></td>
+                    <td>1536px</td>
+                    <td>Large desktop</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Elevation System -->
+        <section class="doc-section flex flex-col gap-gutter-sm">
+          <h2 id="elevation-system" class="text-2xl font-semibold">
+            <a href="#elevation-system" class="header-anchor">Elevation System</a>
+          </h2>
+          <p>
+            We use elevation (shadows + z-index), not 1px borders, for visual separation. Borders are ONLY for semantic
+            emphasis (accent bars).
+          </p>
+
+          <h3 id="shadows" class="text-xl font-semibold">
+            <a href="#shadows" class="header-anchor">Shadows</a>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            <div class="bg-surface rounded-lg p-6 shadow-sm flex flex-col gap-gutter-xs">
+              <p class="text-sm font-mono">--shadow-sm</p>
+              <p class="text-xs text-tertiary">.shadow-sm</p>
+              <p class="text-xs text-tertiary">Cards, elevated surfaces</p>
+            </div>
+            <div class="bg-surface rounded-lg p-6 shadow-md flex flex-col gap-gutter-xs">
+              <p class="text-sm font-mono">--shadow-md</p>
+              <p class="text-xs text-tertiary">.shadow-md</p>
+              <p class="text-xs text-tertiary">Dropdowns, popovers</p>
+            </div>
+            <div class="bg-surface rounded-lg p-6 shadow-lg flex flex-col gap-gutter-xs">
+              <p class="text-sm font-mono">--shadow-lg</p>
+              <p class="text-xs text-tertiary">.shadow-lg</p>
+              <p class="text-xs text-tertiary">Modals, dialogs</p>
+            </div>
+          </div>
+
+          <h3 id="z-index-scale" class="text-xl font-semibold">
+            <a href="#z-index-scale" class="header-anchor">Z-Index Scale</a>
+          </h3>
+          <div class="card markdown">
+            <div class="overflow-x-auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Token</th>
+                    <th>Value</th>
+                    <th>Usage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>--z-base</code></td>
+                    <td>0</td>
+                    <td>Default layer - page content</td>
+                  </tr>
+                  <tr>
+                    <td><code>--z-elevated</code></td>
+                    <td>100</td>
+                    <td>Cards, surfaces</td>
+                  </tr>
+                  <tr>
+                    <td><code>--z-sticky</code></td>
+                    <td>200</td>
+                    <td>Sticky headers</td>
+                  </tr>
+                  <tr>
+                    <td><code>--z-dropdown</code></td>
+                    <td>300</td>
+                    <td>Dropdowns, popovers</td>
+                  </tr>
+                  <tr>
+                    <td><code>--z-overlay</code></td>
+                    <td>400</td>
+                    <td>Modal backdrops</td>
+                  </tr>
+                  <tr>
+                    <td><code>--z-modal</code></td>
+                    <td>500</td>
+                    <td>Modal dialogs</td>
+                  </tr>
+                  <tr>
+                    <td><code>--z-toast</code></td>
+                    <td>600</td>
+                    <td>Toast notifications</td>
+                  </tr>
+                  <tr>
+                    <td><code>--z-tooltip</code></td>
+                    <td>700</td>
+                    <td>Tooltips</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Animations -->
+        <section class="doc-section flex flex-col gap-gutter-sm">
+          <h2 id="animations" class="text-2xl font-semibold">
+            <a href="#animations" class="header-anchor">Animation Library</a>
+          </h2>
+          <p>Reusable animations for entrance, exit, and feedback. Click buttons to preview.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+            <div class="card flex flex-col items-center gap-gutter-sm">
+              <div id="fade-demo" class="w-16 h-16 bg-primary rounded-lg"></div>
+              <p class="text-sm font-mono">fade-in / fade-out</p>
+              <p class="text-xs text-tertiary">Modals, overlays, toasts</p>
+              <div class="flex gap-gutter-xs">
+                <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('fade-demo', 'animate-fade-in')">
+                  In
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('fade-demo', 'animate-fade-out')">
+                  Out
+                </button>
+              </div>
+            </div>
+
+            <div class="card flex flex-col items-center gap-gutter-sm">
+              <div id="scale-demo" class="w-16 h-16 bg-primary rounded-lg"></div>
+              <p class="text-sm font-mono">scale-in / scale-out</p>
+              <p class="text-xs text-tertiary">Dropdowns, popovers</p>
+              <div class="flex gap-gutter-xs">
+                <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('scale-demo', 'animate-scale-in')">
+                  In
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('scale-demo', 'animate-scale-out')">
+                  Out
+                </button>
+              </div>
+            </div>
+
+            <div class="card flex flex-col items-center gap-gutter-sm">
+              <div id="shake-demo" class="w-16 h-16 bg-primary rounded-lg"></div>
+              <p class="text-sm font-mono">shake</p>
+              <p class="text-xs text-tertiary">Form validation error</p>
+              <button class="btn btn-secondary btn-sm" onclick="triggerAnimation('shake-demo', 'animate-shake')">
+                Trigger
+              </button>
+            </div>
+
+            <div class="card flex flex-col items-center gap-gutter-sm">
+              <div id="slide-demo" class="w-16 h-16 bg-primary rounded-lg"></div>
+              <p class="text-sm font-mono">slide-up</p>
+              <p class="text-xs text-tertiary">Message entrance</p>
+              <button class="btn btn-secondary btn-sm" onclick="triggerSlideUp('slide-demo')">Trigger</button>
+            </div>
+
+            <div class="card flex flex-col items-center gap-gutter-sm">
+              <div
+                class="w-16 h-16 bg-primary rounded-lg"
+                style="animation: pulse var(--duration-animation-slow) ease-in-out infinite"
+              ></div>
+              <p class="text-sm font-mono">pulse</p>
+              <p class="text-xs text-tertiary">Thinking indicator</p>
+            </div>
+
+            <div class="card flex flex-col items-center gap-gutter-sm">
+              <div class="w-16 h-16 bg-primary rounded-lg animate-spin"></div>
+              <p class="text-sm font-mono">spin</p>
+              <p class="text-xs text-tertiary">Loading spinner</p>
+            </div>
+          </div>
+
+          <h3 id="animation-tokens" class="text-xl font-semibold">
+            <a href="#animation-tokens" class="header-anchor">Tokens</a>
+          </h3>
+          <div class="card markdown">
+            <div class="overflow-x-auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Token</th>
+                    <th>Value</th>
+                    <th>Usage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>--duration-animation-fast</code></td>
+                    <td>300ms</td>
+                    <td>Entrance/exit, feedback</td>
+                  </tr>
+                  <tr>
+                    <td><code>--duration-animation-slow</code></td>
+                    <td>1.5s</td>
+                    <td>Continuous (pulse, loading)</td>
+                  </tr>
+                  <tr>
+                    <td><code>--distance-slide</code></td>
+                    <td>9px</td>
+                    <td>Slide/shake distance</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Icons -->
+        <section class="doc-section flex flex-col gap-gutter-sm">
+          <h2 id="icons" class="text-2xl font-semibold">
+            <a href="#icons" class="header-anchor">Icons</a>
+          </h2>
+          <p class="text-text-secondary">
+            Heroicons (outline) with three sizes: Small (15px), Medium (18px), Large (24px)
+          </p>
+          <div class="grid grid-cols-4 md:grid-cols-8 gap-gutter">
+            <div class="card flex flex-col items-center gap-gutter-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+                />
+              </svg>
+              <span class="text-xs text-center">send</span>
+            </div>
+            <div class="card flex flex-col items-center gap-gutter-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"
+                />
+              </svg>
+              <span class="text-xs text-center">attach</span>
+            </div>
+            <div class="card flex flex-col items-center gap-gutter-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+                />
+              </svg>
+              <span class="text-xs text-center">sun</span>
+            </div>
+            <div class="card flex flex-col items-center gap-gutter-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
+                />
+              </svg>
+              <span class="text-xs text-center">moon</span>
+            </div>
+            <div class="card flex flex-col items-center gap-gutter-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                />
+              </svg>
+              <span class="text-xs text-center">trash</span>
+            </div>
+            <div class="card flex flex-col items-center gap-gutter-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+              <span class="text-xs text-center">check</span>
+            </div>
+            <div class="card flex flex-col items-center gap-gutter-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              <span class="text-xs text-center">plus</span>
+            </div>
+            <div class="card flex flex-col items-center gap-gutter-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                />
+              </svg>
+              <span class="text-xs text-center">search</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Components -->
+        <section class="doc-section flex flex-col gap-gutter-sm">
+          <h2 id="components" class="text-2xl font-semibold">
+            <a href="#components" class="header-anchor">Components</a>
+          </h2>
+
+          <h3 id="buttons" class="text-xl font-semibold">
+            <a href="#buttons" class="header-anchor">Buttons</a>
+          </h3>
+          <div class="card flex flex-wrap gap-gutter-sm">
+            <button class="btn btn-primary">Primary</button>
+            <button class="btn btn-secondary">Secondary</button>
+            <button class="btn btn-ghost">Ghost</button>
+            <button class="btn btn-icon btn-primary">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            </button>
+            <button class="btn btn-primary" disabled>Disabled</button>
+          </div>
+          <div class="card flex flex-wrap gap-gutter-sm">
+            <button class="btn btn-primary btn-sm">Primary Small</button>
+            <button class="btn btn-secondary btn-sm">Secondary Small</button>
+            <button class="btn btn-ghost btn-sm">Ghost Small</button>
+          </div>
+
+          <h3 id="input-fields" class="text-xl font-semibold">
+            <a href="#input-fields" class="header-anchor">Input Fields</a>
+          </h3>
+          <div class="card flex flex-col gap-gutter-sm">
+            <input type="text" class="input" placeholder="Enter text..." />
+            <textarea class="input textarea" placeholder="Multiline text..."></textarea>
+            <input type="text" class="input" disabled value="Disabled" />
+          </div>
+
+          <h3 id="checkboxes" class="text-xl font-semibold">
+            <a href="#checkboxes" class="header-anchor">Checkboxes</a>
+          </h3>
+          <div class="card flex flex-wrap gap-gutter">
+            <label class="checkbox">
+              <input type="checkbox" class="checkbox-input" />
+              <span class="checkbox-label">Unchecked</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="checkbox-input" checked />
+              <span class="checkbox-label">Checked</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="checkbox-input" disabled />
+              <span class="checkbox-label">Disabled</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="checkbox-input input-error" />
+              <span class="checkbox-label">Error state</span>
+            </label>
+          </div>
+
+          <h3 id="radio-buttons" class="text-xl font-semibold">
+            <a href="#radio-buttons" class="header-anchor">Radio Buttons</a>
+          </h3>
+          <div class="card flex flex-wrap gap-gutter">
+            <label class="radio">
+              <input type="radio" name="demo-radio" class="radio-input" />
+              <span class="radio-label">Option A</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="demo-radio" class="radio-input" checked />
+              <span class="radio-label">Option B</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="demo-radio-disabled" class="radio-input" disabled />
+              <span class="radio-label">Disabled</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="demo-radio-error" class="radio-input input-error" />
+              <span class="radio-label">Error state</span>
+            </label>
+          </div>
+
+          <h3 id="range-sliders" class="text-xl font-semibold">
+            <a href="#range-sliders" class="header-anchor">Range Sliders</a>
+          </h3>
+          <div class="card flex flex-col gap-gutter-sm">
+            <input type="range" class="range" min="0" max="100" value="50" />
+            <input type="range" class="range" min="0" max="100" value="25" disabled />
+          </div>
+
+          <h3 id="selects" class="text-xl font-semibold">
+            <a href="#selects" class="header-anchor">Select Dropdowns</a>
+          </h3>
+          <div class="card flex flex-col gap-gutter-sm">
+            <select class="select">
+              <option value="">Select an option...</option>
+              <option value="1">Option 1</option>
+              <option value="2">Option 2</option>
+              <option value="3">Option 3</option>
+            </select>
+            <select class="select" disabled>
+              <option>Disabled select</option>
+            </select>
+            <select class="select input-error">
+              <option value="">Required field...</option>
+            </select>
+          </div>
+
+          <h3 id="form-validation" class="text-xl font-semibold">
+            <a href="#form-validation" class="header-anchor">Form Validation</a>
+          </h3>
+          <div class="card flex flex-col gap-gutter-sm">
+            <div class="form-group">
+              <label class="form-label form-label-required">Email</label>
+              <input type="email" class="input input-error" value="invalid-email" />
+              <p class="form-error">Please enter a valid email address</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Username</label>
+              <input type="text" class="input input-success" value="valid_user" />
+              <p class="form-success">Username is available</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="password" class="input" placeholder="Enter password" />
+              <p class="form-hint">At least 8 characters with one number</p>
+            </div>
+          </div>
+
+          <h3 id="cards" class="text-xl font-semibold">
+            <a href="#cards" class="header-anchor">Cards</a>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div class="card flex flex-col gap-gutter-xs">
+              <h4 class="font-semibold">Card Component</h4>
+              <p class="text-sm text-secondary">Container for grouping related content with elevation</p>
+            </div>
+            <div class="card flex flex-col gap-gutter-xs">
+              <h4 class="font-semibold">Another Card</h4>
+              <p class="text-sm text-secondary">Uses .bg-surface, .rounded-lg, .shadow-sm, .p-6</p>
+            </div>
+          </div>
+
+          <h3 id="badges" class="text-xl font-semibold">
+            <a href="#badges" class="header-anchor">Badges</a>
+          </h3>
+          <div class="flex flex-wrap gap-gutter-sm">
+            <span class="badge">Default Badge</span>
+            <span class="badge badge-primary">Primary Badge</span>
+            <span class="badge">Status: Active</span>
+            <span class="badge badge-primary">v1.0.0</span>
+          </div>
+
+          <h3 id="messages" class="text-xl font-semibold">
+            <a href="#messages" class="header-anchor">Messages</a>
+          </h3>
+          <div class="flex flex-col gap-gutter-sm">
+            <div class="message message-user">
+              <p>Hello! This is a user message</p>
+            </div>
+            <div class="message message-assistant">
+              <p>This is an assistant response. Note the teal accent bar on the left and soft background.</p>
+            </div>
+            <div class="thinking">
+              <div class="thinking-dot"></div>
+              <span>Thinking...</span>
+            </div>
+          </div>
+
+          <h3 id="menu" class="text-xl font-semibold">
+            <a href="#menu" class="header-anchor">Menu</a>
+          </h3>
+          <p class="text-text-secondary">Dropdown menu (desktop) / bottom sheet (mobile) using native popover.</p>
+
+          <div class="flex gap-gutter items-start">
+            <!-- Settings menu example -->
+            <div class="relative">
+              <button
+                id="demo-settings-trigger"
+                popovertarget="demo-settings-menu"
+                class="btn btn-ghost btn-icon"
+                aria-label="Settings"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="w-[18px] h-[18px]"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
+                  />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+              </button>
+              <ds-menu id="demo-settings-menu" popover class="menu" role="menu"></ds-menu>
+            </div>
+          </div>
+        </section>
+
+        <!-- Markdown -->
+        <section class="doc-section flex flex-col gap-gutter-sm">
+          <h2 id="markdown" class="text-2xl font-semibold">
+            <a href="#markdown" class="header-anchor">Markdown</a>
+          </h2>
+          <p class="text-text-secondary">
+            Styling for rendered markdown content (scientific papers, AI responses, documentation)
+          </p>
+
+          <div class="card markdown">
+            <h1>Heading 1 (24px)</h1>
+            <p>
+              Paragraph with <strong>bold</strong>, <em>italic</em>, <del>strikethrough</del>, and <a href="#">link</a>.
+              Inline code: <code>const result = calculate(3, 6);</code>
+            </p>
+
+            <h2>Heading 2 (18px)</h2>
+            <p>Comfortable line height for extended reading of scientific content.</p>
+
+            <h3>Heading 3 (15px)</h3>
+            <p>Smallest heading level for subsections.</p>
+
+            <h2>Lists</h2>
+            <ul>
+              <li>First item in the list</li>
+              <li>Second item with longer content</li>
+              <li>Third item</li>
+            </ul>
+
+            <ol>
+              <li>First numbered item</li>
+              <li>Second numbered item</li>
+              <li>Third numbered item</li>
+            </ol>
+
+            <h2>Code Block</h2>
+            <pre><code>function calculateSum(a, b) {
   return a + b;
 }
 
 const result = calculateSum(3, 6);
 console.log(result); // 9</code></pre>
 
-          <h2>Blockquote</h2>
-          <blockquote>
-            Blockquote with teal accent bar for highlighting important scientific findings or citations from research
-            papers.
-          </blockquote>
+            <h2>Blockquote</h2>
+            <blockquote>
+              Blockquote with teal accent bar for highlighting important scientific findings or citations from research
+              papers.
+            </blockquote>
 
-          <h2>Horizontal Rule</h2>
-          <p>Horizontal rule separates major sections:</p>
-          <hr />
-          <p>Content after the rule.</p>
+            <h2>Horizontal Rule</h2>
+            <p>Horizontal rule separates major sections:</p>
+            <hr />
+            <p>Content after the rule.</p>
 
-          <h2>Table</h2>
-          <div class="overflow-x-auto">
-            <table>
-              <thead>
-                <tr>
-                  <th>Property</th>
-                  <th>Value</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Spacing</td>
-                  <td>Base-3</td>
-                  <td>All values divisible by 3px</td>
-                </tr>
-                <tr>
-                  <td>Touch target</td>
-                  <td>45px</td>
-                  <td>WCAG minimum</td>
-                </tr>
-                <tr>
-                  <td>Grid column</td>
-                  <td>72px</td>
-                  <td>Layout grid unit</td>
-                </tr>
-              </tbody>
-            </table>
+            <h2>Table</h2>
+            <div class="overflow-x-auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Spacing</td>
+                    <td>Base-3</td>
+                    <td>All values divisible by 3px</td>
+                  </tr>
+                  <tr>
+                    <td>Touch target</td>
+                    <td>45px</td>
+                    <td>WCAG minimum</td>
+                  </tr>
+                  <tr>
+                    <td>Grid column</td>
+                    <td>72px</td>
+                    <td>Layout grid unit</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Charts -->
-      <section class="doc-section flex flex-col gap-gutter-sm">
-        <h2 id="charts" class="text-2xl font-semibold">
-          <a href="#charts" class="header-anchor">Charts</a>
-        </h2>
-        <p class="text-sm">
-          Data visualization components. LLMs return structured JSON, app renders with design system styling.
-        </p>
+        <!-- Charts -->
+        <section class="doc-section flex flex-col gap-gutter-sm">
+          <h2 id="charts" class="text-2xl font-semibold">
+            <a href="#charts" class="header-anchor">Charts</a>
+          </h2>
+          <p class="text-sm">
+            Data visualization components. LLMs return structured JSON, app renders with design system styling.
+          </p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-gutter gap-y-gutter">
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="line-chart" class="text-xl font-semibold">
-              <a href="#line-chart" class="header-anchor">Line Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="line"></ds-chart></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-gutter gap-y-gutter">
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="line-chart" class="text-xl font-semibold">
+                <a href="#line-chart" class="header-anchor">Line Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="line"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="bar-chart" class="text-xl font-semibold">
+                <a href="#bar-chart" class="header-anchor">Bar Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="bar"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="pie-chart" class="text-xl font-semibold">
+                <a href="#pie-chart" class="header-anchor">Pie Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="pie"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="donut-chart" class="text-xl font-semibold">
+                <a href="#donut-chart" class="header-anchor">Donut Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="donut"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="scatter-plot" class="text-xl font-semibold">
+                <a href="#scatter-plot" class="header-anchor">Scatter Plot</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="scatter"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="area-chart" class="text-xl font-semibold">
+                <a href="#area-chart" class="header-anchor">Area Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="area"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="histogram" class="text-xl font-semibold">
+                <a href="#histogram" class="header-anchor">Histogram</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="histogram"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="box-plot" class="text-xl font-semibold">
+                <a href="#box-plot" class="header-anchor">Box Plot</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="boxplot"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="heatmap" class="text-xl font-semibold">
+                <a href="#heatmap" class="header-anchor">Heatmap</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="heatmap"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="radar-chart" class="text-xl font-semibold">
+                <a href="#radar-chart" class="header-anchor">Radar Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="radar"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="bubble-chart" class="text-xl font-semibold">
+                <a href="#bubble-chart" class="header-anchor">Bubble Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="bubble"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="waterfall-chart" class="text-xl font-semibold">
+                <a href="#waterfall-chart" class="header-anchor">Waterfall Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="waterfall"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="funnel-chart" class="text-xl font-semibold">
+                <a href="#funnel-chart" class="header-anchor">Funnel Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="funnel"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="gauge-chart" class="text-xl font-semibold">
+                <a href="#gauge-chart" class="header-anchor">Gauge Chart</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="gauge"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="treemap" class="text-xl font-semibold">
+                <a href="#treemap" class="header-anchor">Treemap</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="treemap"></ds-chart></div>
+            </div>
+            <div class="flex flex-col gap-gutter-sm">
+              <h3 id="sankey-diagram" class="text-xl font-semibold">
+                <a href="#sankey-diagram" class="header-anchor">Sankey Diagram</a>
+              </h3>
+              <div class="card"><ds-chart data-chart="sankey"></ds-chart></div>
+            </div>
           </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="bar-chart" class="text-xl font-semibold">
-              <a href="#bar-chart" class="header-anchor">Bar Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="bar"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="pie-chart" class="text-xl font-semibold">
-              <a href="#pie-chart" class="header-anchor">Pie Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="pie"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="donut-chart" class="text-xl font-semibold">
-              <a href="#donut-chart" class="header-anchor">Donut Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="donut"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="scatter-plot" class="text-xl font-semibold">
-              <a href="#scatter-plot" class="header-anchor">Scatter Plot</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="scatter"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="area-chart" class="text-xl font-semibold">
-              <a href="#area-chart" class="header-anchor">Area Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="area"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="histogram" class="text-xl font-semibold">
-              <a href="#histogram" class="header-anchor">Histogram</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="histogram"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="box-plot" class="text-xl font-semibold">
-              <a href="#box-plot" class="header-anchor">Box Plot</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="boxplot"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="heatmap" class="text-xl font-semibold">
-              <a href="#heatmap" class="header-anchor">Heatmap</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="heatmap"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="radar-chart" class="text-xl font-semibold">
-              <a href="#radar-chart" class="header-anchor">Radar Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="radar"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="bubble-chart" class="text-xl font-semibold">
-              <a href="#bubble-chart" class="header-anchor">Bubble Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="bubble"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="waterfall-chart" class="text-xl font-semibold">
-              <a href="#waterfall-chart" class="header-anchor">Waterfall Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="waterfall"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="funnel-chart" class="text-xl font-semibold">
-              <a href="#funnel-chart" class="header-anchor">Funnel Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="funnel"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="gauge-chart" class="text-xl font-semibold">
-              <a href="#gauge-chart" class="header-anchor">Gauge Chart</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="gauge"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="treemap" class="text-xl font-semibold">
-              <a href="#treemap" class="header-anchor">Treemap</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="treemap"></ds-chart></div>
-          </div>
-          <div class="flex flex-col gap-gutter-sm">
-            <h3 id="sankey-diagram" class="text-xl font-semibold">
-              <a href="#sankey-diagram" class="header-anchor">Sankey Diagram</a>
-            </h3>
-            <div class="card"><ds-chart data-chart="sankey"></ds-chart></div>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
 
     <script type="module" src="/src/design-system.ts"></script>

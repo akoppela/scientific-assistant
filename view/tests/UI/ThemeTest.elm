@@ -2,6 +2,8 @@
    License, v. 2.0. If a copy of the MPL was not distributed with this
    file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -}
+
+
 module UI.ThemeTest exposing (suite)
 
 {-| Tests for UI.Theme module.
@@ -11,8 +13,8 @@ Verifies theme toggling and string conversion functions.
 -}
 
 import Expect
-import UI.Theme as Theme
 import Test
+import UI.Theme as Theme
 
 
 {-| Theme test suite.

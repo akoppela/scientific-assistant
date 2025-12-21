@@ -85,11 +85,11 @@
 
   /* ---- Input ---- */
   .input {
-    display: flex;
     width: 100%;
     padding: var(--space-3) var(--space-4);
     font-family: var(--font-sans);
     font-size: var(--font-size-base); /* 15px */
+    line-height: var(--line-height-normal);
     background-color: var(--color-bg-muted);
     border: none;
     border-radius: var(--radius-md);
@@ -107,10 +107,10 @@
   }
 
   .textarea {
+    padding: var(--space-4); /* 12px all sides for vertical centering */
     min-height: var(--size-touch-target);
     max-height: var(--size-textarea-max);
     resize: none;
-    line-height: var(--line-height-normal);
   }
 
   /* ---- Cards ---- */
@@ -621,5 +621,233 @@
   }
   .data-9 {
     background-color: var(--color-data-9);
+  }
+
+  /* ---- Menu (Dropdown / Bottom Sheet) ----
+     Uses native HTML popover attribute.
+     Mobile (<768px): Bottom sheet slides up from bottom
+     Desktop (≥768px): Dropdown positioned below trigger (via Web Component)
+     ---------------------------------------- */
+
+  /* Menu container using native popover */
+  .menu[popover] {
+    /* Reset popover defaults */
+    margin: 0;
+    border: none;
+    padding: var(--space-3);
+    background-color: var(--color-bg-surface);
+    overflow-y: auto;
+
+    /* Mobile: Bottom sheet - 75% of screen width, centered */
+    inset: auto 0 0 0;
+    width: 75%;
+    min-width: var(--width-menu-min);
+    max-width: var(--width-menu-max);
+    max-height: 75vh;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Opening animation for mobile */
+  .menu[popover]:popover-open {
+    animation: slide-up var(--duration-animation-fast) ease-out;
+  }
+
+  /* Mobile backdrop (semi-transparent) */
+  .menu[popover]::backdrop {
+    background-color: rgba(0, 0, 0, var(--opacity-backdrop));
+  }
+
+  /* Desktop: Dropdown (positioned via JavaScript) */
+  @media (min-width: 48rem) {
+    .menu[popover] {
+      /* Reset mobile styles */
+      inset: unset;
+      width: auto;
+      max-width: none;
+      max-height: none;
+      margin-left: 0;
+      margin-right: 0;
+      overflow-y: visible;
+
+      /* Desktop dropdown styles */
+      min-width: var(--width-menu-min);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .menu[popover]:popover-open {
+      animation: scale-in var(--duration-animation-fast) ease-out;
+      transform-origin: top right;
+    }
+
+    /* Hide backdrop on desktop */
+    .menu[popover]::backdrop {
+      background-color: transparent;
+    }
+  }
+
+  /* Menu header - optional title/handle for bottom sheet */
+  .menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) var(--space-4);
+    padding-bottom: var(--space-3);
+  }
+
+  /* Bottom sheet handle (drag indicator) */
+  .menu-handle {
+    width: var(--space-12); /* 36px */
+    height: var(--space-1); /* 3px */
+    background-color: var(--color-border);
+    border-radius: var(--radius-full);
+  }
+
+  /* Hide header on desktop */
+  @media (min-width: 48rem) {
+    .menu-header {
+      display: none;
+    }
+  }
+
+  /* Menu item - clickable row */
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3) var(--space-5);
+    min-height: var(--size-touch-target);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .menu-item:hover {
+    background-color: var(--color-bg-muted);
+  }
+
+  .menu-item:active {
+    opacity: var(--opacity-active);
+  }
+
+  .menu-item:disabled {
+    opacity: var(--opacity-disabled);
+    pointer-events: none;
+  }
+
+  /* Menu item icon - left side */
+  .menu-item-icon {
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+  }
+
+  /* Menu item text - fills space */
+  .menu-item-text {
+    flex: 1;
+  }
+
+  /* Menu item suffix - right side (value indicator, shortcut) */
+  .menu-item-suffix {
+    flex-shrink: 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  /* Active/selected menu item */
+  .menu-item-active {
+    color: var(--color-primary);
+  }
+
+  .menu-item-active .menu-item-icon {
+    color: var(--color-primary);
+  }
+
+  /* Menu divider - thin separator between groups */
+  .menu-divider {
+    height: var(--space-1);
+    margin: var(--space-2) var(--space-2);
+    background-color: var(--color-border);
+    border-radius: var(--radius-full);
+  }
+
+  /* Menu group label */
+  .menu-label {
+    padding: var(--space-2) var(--space-5);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+
+  /* ---- App Header ---- */
+
+  /* Application header bar with surface background and shadow */
+  .app-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-4) var(--space-8);
+    background: var(--color-bg-surface);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+    position: relative;
+    z-index: var(--z-sticky);
+  }
+
+  /* Header title */
+  .app-header-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+  }
+
+  /* Header navigation links */
+  .app-header a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+  }
+
+  .app-header a:hover {
+    color: var(--color-text);
+  }
+
+  .app-header a.active {
+    color: var(--color-primary);
+  }
+
+  /* Push trailing items to the right */
+  .app-header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* ---- App Footer ---- */
+
+  /* Application footer bar with surface background and shadow up */
+  .app-footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-4) var(--space-8);
+    background: var(--color-bg-surface);
+    box-shadow: var(--shadow-sm-up);
+    flex-shrink: 0;
+    position: relative;
+    z-index: var(--z-sticky);
   }
 }

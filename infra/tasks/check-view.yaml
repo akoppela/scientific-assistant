@@ -2,6 +2,6 @@ tasks:
   - name: Elm tests
     cmd: elm-test
   - name: Elm format validation
-    cmd: elm-format --validate src/
+    cmd: find . -type f -name '*.elm' | grep -v -e elm-stuff -e '\.elm/' | xargs elm-format --validate
   - name: Elm review
     cmd: elm-review

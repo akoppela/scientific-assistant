@@ -108,6 +108,7 @@
 
   /* Elevation - Shadows (theme-specific opacity) */
   --shadow-sm: 0 3px 3px rgba(26, 46, 46, 0.06);
+  --shadow-sm-up: 0 -3px 3px rgba(26, 46, 46, 0.06);
   --shadow-md: 0 6px 6px -3px rgba(26, 46, 46, 0.09), 0 3px 6px -3px rgba(26, 46, 46, 0.06);
   --shadow-lg: 0 12px 15px -3px rgba(26, 46, 46, 0.09), 0 6px 9px -3px rgba(26, 46, 46, 0.06);
 
@@ -139,6 +140,8 @@
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.5;
 
+  --letter-spacing-wide: 0.05em;
+
   /* Sizes - Base 3 */
   --size-touch-target: 2.8125rem; /* 45px - WCAG minimum */
   --size-scrollbar: 0.5625rem; /* 9px */
@@ -150,6 +153,8 @@
   --width-message-max: 75%; /* Chat bubble max width */
   --width-grid-column: 4.5rem; /* 72px - grid column unit */
   --width-table-min: 37.5rem; /* 600px - table min width for readability */
+  --width-menu-min: 12rem; /* 192px - menu dropdown min width */
+  --width-menu-max: 24rem; /* 384px - menu bottom sheet max width */
 
   /* Grid System - Base 3 */
   --grid-columns: 12; /* Standard 12-column grid */
@@ -163,10 +168,14 @@
   --container-padding-lg: 3rem; /* 48px - desktop padding */
   --container-max: 90rem; /* 1440px - 20 × 72px */
 
+  /* Viewport constraints */
+  --viewport-min: 18.75rem; /* 300px - minimum supported screen width */
+
   /* Opacity */
   --opacity-disabled: 0.45;
   --opacity-active: 0.75;
   --opacity-subtle: 0.45;
+  --opacity-backdrop: 0.3;
   --opacity-scrollbar: 0.3;
   --opacity-scrollbar-hover: 0.6;
   --opacity-pulse-low: 0.3;
@@ -243,6 +252,7 @@
 
   /* Elevation - Darker shadows for dark mode */
   --shadow-sm: 0 3px 3px rgba(0, 0, 0, 0.21);
+  --shadow-sm-up: 0 -3px 3px rgba(0, 0, 0, 0.21);
   --shadow-md: 0 6px 6px -3px rgba(0, 0, 0, 0.27), 0 3px 6px -3px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 12px 15px -3px rgba(0, 0, 0, 0.3), 0 6px 9px -3px rgba(0, 0, 0, 0.15);
 }

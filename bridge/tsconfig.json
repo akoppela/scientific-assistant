@@ -17,6 +17,10 @@
     "forceConsistentCasingInFileNames": true,
 
     // Module Resolution
+    "baseUrl": ".",
+    "paths": {
+      "echarts": ["./node_modules/echarts"]
+    },
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true,

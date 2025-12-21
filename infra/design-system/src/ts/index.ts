@@ -5,7 +5,7 @@
 /**
  * Design System Entry Point
  *
- * Exports all TypeScript modules and registers the ds-chart custom element.
+ * Exports all TypeScript modules and registers custom elements.
  */
 
 // Re-export chart types, transform, and token getter
@@ -33,3 +33,7 @@ export { toEChartsOption, getChartTokens } from './charts.ts';
 
 // Export and register ds-chart custom element
 export { DsChart } from './chart-element.ts';
+
+// Export and register ds-menu custom element
+export type { MenuItem, ActionMenuItem, DividerMenuItem } from './menu-element';
+export { DsMenu } from './menu-element';

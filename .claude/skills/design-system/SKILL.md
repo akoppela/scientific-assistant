@@ -217,6 +217,23 @@ Nature-inspired, calming palette with teal accent. Easy on eyes for extended use
 | tiny        | 0.75rem (12px)    | 500    | 1.2         | Badges, metadata                     |
 | mono        | 0.9375rem (15px)  | 400    | 1.5         | Code blocks, technical text          |
 
+### Letter Spacing
+
+| Token                   | Value  | Usage                                           |
+|-------------------------|--------|-------------------------------------------------|
+| (default)               | normal | Body text, headings, buttons - most text        |
+| `--letter-spacing-wide` | 0.05em | Uppercase labels, menu group headers, tiny text |
+
+**When to use wide letter spacing:**
+- Uppercase text (`text-transform: uppercase`) - improves readability
+- Very small text (12px/tiny) used as labels or metadata
+- Menu group labels, section dividers with text
+
+**When NOT to use:**
+- Body text at normal size
+- Headings (already have appropriate spacing)
+- Buttons and links
+
 ## Border Radius Scale
 
 Consistent rounding based on element size and interaction level:
@@ -1007,6 +1024,154 @@ Universal focus indicator that works on all backgrounds (light, dark, colored bu
 - 3px offset (base-3) keeps focus ring tight to element
 - 3px outline (base-3) provides strong visibility
 - Simple implementation = no visual glitches or corner artifacts
+
+### Menu (Dropdown / Bottom Sheet)
+
+**Purpose:** Settings menu, context menus, action menus. Responsive: bottom sheet on mobile, dropdown on desktop.
+
+**Implementation:** `<ds-menu>` Web Component using native HTML `popover` attribute.
+
+**Key Features:**
+- Native popover handles open/close, light dismiss, Escape key
+- No JavaScript state needed for open/close
+- Smart positioning on desktop: 4 positions (belowRight, aboveRight, belowLeft, aboveLeft)
+- Automatically repositions on trigger/menu resize and scroll
+- Menu items passed as JSON property (icons as SVG strings from Elm)
+- `item-click` custom event for handling selections
+
+**Variants:**
+- **Mobile (<768px):** Bottom sheet slides up from bottom of screen
+- **Desktop (≥768px):** Dropdown positioned below trigger button
+
+**Structure (HTML):**
+```html
+<!-- Trigger button (linked via popovertarget) -->
+<button
+  popovertarget="settings-menu"
+  class="btn btn-ghost btn-icon"
+  aria-label="Settings"
+>
+  <!-- settings icon -->
+</button>
+
+<!-- Menu (Web Component with native popover) -->
+<ds-menu
+  id="settings-menu"
+  popover
+  class="menu"
+  role="menu"
+></ds-menu>
+```
+
+**Structure (Elm with UI.Menu helper):**
+```elm
+import UI.Menu as Menu
+import UI.Icons as Icons
+
+-- Trigger button
+Html.button
+    [ Attrs.attribute "popovertarget" "settings-menu"
+    , Attrs.class "btn btn-ghost btn-icon"
+    ]
+    [ Icons.toHtml Icons.Medium Icons.settings ]
+
+-- Menu
+Menu.view
+    { id = "settings-menu"
+    , items =
+        [ Menu.Action
+            { id = "toggle-theme"
+            , icon = Icons.moon
+            , label = "Dark theme"
+            , suffix = Nothing
+            }
+        , Menu.Divider
+        , Menu.Action
+            { id = "help"
+            , icon = Icons.help
+            , label = "Help"
+            , suffix = Nothing
+            }
+        ]
+    , onItemClick =
+        [ ( "toggle-theme", ToggleTheme )
+        , ( "help", ShowHelp )
+        ]
+    }
+```
+
+**Menu Container Specifications:**
+- **Mobile (bottom sheet):**
+  - Uses native popover positioning (fixed, full-width at bottom)
+  - Border radius: 15px top only (`var(--radius-xl)`)
+  - Shadow: `var(--shadow-lg)`
+  - Animation: Slide up from bottom (300ms)
+  - Backdrop: Semi-transparent (`::backdrop` with 30% opacity)
+- **Desktop (dropdown):**
+  - Position: Calculated by Web Component using smart positioning
+  - Priority: belowRight → aboveRight → belowLeft → aboveLeft
+  - Constrains to viewport with margins when menu doesn't fit
+  - Repositions on trigger resize, menu resize, and scroll
+  - Min-width: 192px (`var(--width-menu-min)`)
+  - Border radius: 12px (`var(--radius-lg)`)
+  - Shadow: `var(--shadow-md)`
+  - Animation: Scale in from top-right (300ms)
+  - Backdrop: Transparent (click-through)
+
+**Menu Item Specifications:**
+- Height: 45px (`var(--size-touch-target)`)
+- Padding: 9px × 15px (`var(--space-3)` × `var(--space-5)`)
+- Gap: 9px (`var(--space-3)`) between icon, text, suffix
+- Font size: 15px (`var(--font-size-base)`)
+
+**Menu Item States:**
+- **Default:** Transparent background, primary text color
+- **Hover:** Muted background (`--color-bg-muted`)
+- **Active:** Opacity 0.75 (`var(--opacity-active)`)
+- **Active/Selected:** Primary color for text and icon
+
+**Menu Handle (mobile only):**
+- Width: 36px (`var(--space-12)`)
+- Height: 3px (`var(--space-1)`)
+- Background: `var(--color-border)`
+- Border radius: Full pill
+- Hidden on desktop
+
+**Menu Divider:**
+- Height: 6px (`var(--space-2)`)
+- Background: `var(--color-bg-muted)`
+- Vertical margin: 6px (`var(--space-2)`)
+
+**Accessibility:**
+- Menu: `role="menu"` (required attribute)
+- Items: `role="menuitem"` (set by Web Component)
+- Dividers: `role="separator"` (set by Web Component)
+- Escape key closes menu (native popover)
+- Click outside closes menu (native light dismiss)
+- Trigger ARIA: Elm sets `aria-label`, native popover handles `aria-expanded`
+
+**Positioning Behavior (Desktop):**
+- Web Component finds trigger via `[popovertarget="menu-id"]` selector
+- Generates 4 candidate positions (belowRight, aboveRight, belowLeft, aboveLeft)
+- Selects first position that fits in viewport
+- Falls back to belowRight with viewport constraining if none fit
+- Uses 4 position types: TopLeft, TopRight, BottomLeft, BottomRight
+- Position calculated with 6px gap from trigger (`--space-2`)
+- Clears stale positioning when switching mobile ↔ desktop
+
+**Repositioning Triggers (Desktop):**
+- Trigger element resizes (ResizeObserver)
+- Menu element resizes (ResizeObserver)
+- Window scrolls (debounced with RAF)
+- Trigger scrolls off-screen → closes menu (IntersectionObserver)
+- Viewport resizes mobile ↔ desktop → clears/applies positioning
+
+**Why Native Popover:**
+- No JavaScript state for open/close (reduces Elm complexity)
+- Light dismiss built-in (click outside to close)
+- Escape key handling built-in
+- Goes to "top layer" (no z-index conflicts)
+- Backdrop via `::backdrop` pseudo-element
 
 ### Charts
 

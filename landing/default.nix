@@ -11,7 +11,7 @@ buildNpmPackage {
     cp -r ${design-system} ../infra/design-system
   '';
 
-  npmDepsHash = "sha256-Km8xf9h4vXUU42/MmomN4eEZduQG7paZ/Q4I2aS0iXE=";
+  npmDepsHash = "sha256-UL07K6kF48i2u6qAAGHeu7RdMe8g6Aqp1ZAR+/bCf9o=";
   npmFlags = [ "--ignore-scripts" ];
 
   nativeBuildInputs = runParallelTool ++ tsLintTools;

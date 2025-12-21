@@ -2,7 +2,9 @@
    License, v. 2.0. If a copy of the MPL was not distributed with this
    file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -}
-module Extra.ProgramTest exposing (clickByTestId)
+
+
+module Extra.ProgramTest exposing (clickByTestId, fillInByTestId)
 
 {-| Extra helpers for ProgramTest.
 
@@ -25,3 +27,13 @@ clickByTestId testId programTest =
         |> ProgramTest.simulateDomEvent
             (Test.Html.Query.find [ Selector.attribute (Attrs.testId testId) ])
             Test.Html.Event.click
+
+
+{-| Fill in an input/textarea element by its data-testid attribute.
+-}
+fillInByTestId : String -> String -> ProgramTest.ProgramTest model msg effect -> ProgramTest.ProgramTest model msg effect
+fillInByTestId testId value programTest =
+    programTest
+        |> ProgramTest.simulateDomEvent
+            (Test.Html.Query.find [ Selector.attribute (Attrs.testId testId) ])
+            (Test.Html.Event.input value)

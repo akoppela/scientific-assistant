@@ -58,11 +58,25 @@ describe('Language Management', () => {
       document.documentElement.removeAttribute('lang');
 
       const savedLanguage = Language.load();
-      if (savedLanguage) {
+      if (savedLanguage && Language.isLanguage(savedLanguage)) {
         Language.set(savedLanguage);
       }
 
       expect(document.documentElement.getAttribute('lang')).toBe('en');
+    });
+  });
+
+  describe('Language.isLanguage', () => {
+    it('returns true for valid languages', () => {
+      expect(Language.isLanguage('en')).toBe(true);
+      expect(Language.isLanguage('ru')).toBe(true);
+    });
+
+    it('returns false for invalid languages', () => {
+      expect(Language.isLanguage('fr')).toBe(false);
+      expect(Language.isLanguage('de')).toBe(false);
+      expect(Language.isLanguage('')).toBe(false);
+      expect(Language.isLanguage('invalid')).toBe(false);
     });
   });
 });

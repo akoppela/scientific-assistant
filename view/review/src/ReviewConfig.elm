@@ -2,6 +2,8 @@
    License, v. 2.0. If a copy of the MPL was not distributed with this
    file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -}
+
+
 module ReviewConfig exposing (config)
 
 {-| Do not rename the ReviewConfig module or the config function, because
@@ -37,7 +39,6 @@ import NoRecursiveUpdate
 import NoSimpleLetBody
 import NoUnnecessaryTrailingUnderscore
 import NoUnoptimizedRecursion
-import NoUselessSubscriptions
 import NoUnused.CustomTypeConstructorArgs
 import NoUnused.CustomTypeConstructors
 import NoUnused.Dependencies
@@ -46,6 +47,7 @@ import NoUnused.Modules
 import NoUnused.Parameters
 import NoUnused.Patterns
 import NoUnused.Variables
+import NoUselessSubscriptions
 import Review.Rule exposing (Rule)
 import Simplify
 
