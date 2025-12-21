@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     flake-utils.url = "github:numtide/flake-utils";
 
@@ -18,7 +19,7 @@
     crane.url = "github:ipetkov/crane";
   };
 
-  outputs = { self, nixpkgs, flake-utils, devshell, mkElmDerivation, crane }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, devshell, mkElmDerivation, crane }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -29,8 +30,13 @@
             mkElmDerivation.overlays.mkElmDerivation
             mkElmDerivation.overlays.makeDotElmDirectoryCmd
           ];
+        };
 
-          config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+        # Unstable channel for packages that change frequently (e.g., claude-code)
+        unstablePkgs = import nixpkgs-unstable {
+          inherit system;
+
+          config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs-unstable.lib.getName pkg) [
             "claude-code"
           ];
         };
@@ -94,8 +100,8 @@
           # Git
           gh
 
-          # AI
-          claude-code
+          # AI (from unstable for frequent updates)
+          unstablePkgs.claude-code
         ] ++ [ proxy.wrangler ];
 
         # Application layers (each has its own default.nix)
